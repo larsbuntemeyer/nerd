@@ -1,0 +1,99 @@
+#!/bin/sh -f
+
+# a simple script to take the setup_mods file created by setup and
+# produce a Fortran 90 Module that returns the number of modules
+# used to build the FLASH executable and a character array containing
+# their names
+
+# set the maximum length of a character string
+max_length=80
+
+modules=`cat setup_mods | cut -c 1-$max_length`
+
+# hack to count number of mods
+# since sh doesn't have arrays
+# somone please do this better!
+
+#don't know if this is "better" or not
+
+num_modules=`wc -l setup_mods |sed s/\ //g |cut -ds -f1`
+
+    
+# setup the program body
+cat > flashModules.F90 << EOF
+module flashModules
+
+  implicit none
+
+  integer, PARAMETER :: NUM_MODULES = $num_modules
+
+  public :: NUM_MODULES, getFlashModules
+
+contains
+
+!!****f* object/flashModules
+!!
+!! NAME
+!!
+!!  getFlashModules
+!!
+!!
+!! SYNOPSIS
+!!
+!!
+!!  getFlashModules(module_names)
+!!
+!!  getFlashModules(character())
+!!
+!!
+!! DESCRIPTION
+!!
+!!  Return a character array of size NUM_MODULES containing
+!!  the names of all of the FLASH modules used to assemble
+!!  the current executable
+!!
+!!  The module_names variable should be declared as
+!!
+!!    use flashModules
+!!
+!!  #include "flash_defines.fh"
+!!    character (len=MAX_STRING_LENGTH) :: flash_modules(NUM_MODULES) 
+!!
+!!
+!!  The length of each character string is set to MAX_STRING_LENGTH,
+!!  which is defined in the automatically generated flash_defines.fh
+!!
+!!***
+  subroutine getFlashModules(module_names)
+
+    implicit none
+
+    integer, parameter                :: MAX_STRING_LENGTH = 80
+    character (len=MAX_STRING_LENGTH) :: module_names(NUM_MODULES)
+
+!! temporary holds the result of the cat/cut from the setup_mod -- it is
+!! dimensioned to be the same size as the result from the cut so we do
+!! not overflow.  
+    character (len=$max_length) :: temporary
+
+EOF
+
+n=1
+
+for module in $modules
+do
+  echo "    temporary = " \"$module\" >> flashModules.F90
+  echo "    module_names($n) = " temporary\(1:min\(MAX_STRING_LENGTH,$max_length\)\) >> flashModules.F90
+  echo "  " >> flashModules.F90
+  n=`expr $n + 1`
+done
+
+
+cat >> flashModules.F90 << EOF
+
+    return
+
+  end subroutine getFlashModules
+end module flashModules
+
+EOF

@@ -1,0 +1,24 @@
+!
+subroutine RuntimeParameters_init
+   !
+   use RuntimeParameters_data
+   !
+   write(*,*) '----- Runtime_parameters_init -----'
+   write(*,*) 'initializing runtime parameters'
+   !
+   xmin=0.d0
+   ymin=0.d0
+   zmin=0.d0
+   xmax=1.d0
+   ymax=0.d0
+   zmax=0.d0
+   !
+   cfl = 0.8
+   n_max = 10000
+   gamma = 5.d0/3.d0
+   mu_mol = 1.0
+   !
+   write(*,*) '----- Runtime_parameters_init done-'
+   !
+end subroutine RuntimeParameters_init
+!

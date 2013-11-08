@@ -1,0 +1,25 @@
+#!/bin/sh -f
+
+# script to create the FLASH release version function
+
+# this routine will return the major a minor version number as a 
+# string
+
+rm -f flash_release.f
+echo '       ' function flash_release\(\)                >  flash_release.f
+echo '       '                                           >> flash_release.f
+echo '       ' character \(len = 20\) \:\: flash_release >> flash_release.f 
+echo '       '                                           >> flash_release.f
+
+# read in the release number from the RELEASE file
+
+# NOTE: setup copies make_release into the objects directory, so RELEASE
+# lies one directory above
+release=`cat ../RELEASE`
+
+echo '       ' flash_release = \'FLASH 2.4.$release\'    >> flash_release.f
+echo '       '                                           >> flash_release.f
+echo '       ' return                                    >> flash_release.f
+echo '       ' end                                       >> flash_release.f
+
+

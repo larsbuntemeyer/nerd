@@ -1,0 +1,209 @@
+#!/bin/sh -f
+
+# script to create the FLASH buildstats routine
+
+rm -f buildstats.F90
+
+max_length=1000
+line_len=50
+
+BUILD_DATE1=`date | cut -c 1-50`
+BUILD_DATE2=`date | cut -c 51-100`
+
+BUILD_DIR1=`pwd | cut -c 1-50`
+BUILD_DIR2=`pwd | cut -c 51-100`
+
+
+BUILD_MACHINE1=`uname -a | cut -c 1-50`
+BUILD_MACHINE2=`uname -a | cut -c 51-100`
+
+
+# this is the biggest hack 
+
+SETUP_CALL1=`cat setup_call | cut -c 1-50`
+SETUP_CALL2=`cat setup_call | cut -c 51-100`
+SETUP_CALL3=`cat setup_call | cut -c 101-150`
+SETUP_CALL4=`cat setup_call | cut -c 151-200`
+SETUP_CALL5=`cat setup_call | cut -c 201-250`
+SETUP_CALL6=`cat setup_call | cut -c 251-300`
+SETUP_CALL7=`cat setup_call | cut -c 301-350`
+SETUP_CALL8=`cat setup_call | cut -c 351-400`
+SETUP_CALL9=`cat setup_call | cut -c 401-450`
+SETUP_CALL10=`cat setup_call | cut -c 451-500`
+SETUP_CALL11=`cat setup_call | cut -c 501-550`
+SETUP_CALL12=`cat setup_call | cut -c 551-600`
+SETUP_CALL13=`cat setup_call | cut -c 601-650`
+SETUP_CALL14=`cat setup_call | cut -c 651-700`
+SETUP_CALL15=`cat setup_call | cut -c 701-750`
+SETUP_CALL16=`cat setup_call | cut -c 751-800`
+SETUP_CALL17=`cat setup_call | cut -c 801-850`
+SETUP_CALL18=`cat setup_call | cut -c 851-900`
+SETUP_CALL19=`cat setup_call | cut -c 901-950`
+SETUP_CALL20=`cat setup_call | cut -c 951-1000`
+
+
+
+C_FLAGS1=`cat c_compiler_flags | cut -c 1-50`
+C_FLAGS2=`cat c_compiler_flags | cut -c 51-100`
+C_FLAGS3=`cat c_compiler_flags | cut -c 101-150`
+C_FLAGS4=`cat c_compiler_flags | cut -c 151-200`
+C_FLAGS5=`cat c_compiler_flags | cut -c 201-250`
+C_FLAGS6=`cat c_compiler_flags | cut -c 251-300`
+C_FLAGS7=`cat c_compiler_flags | cut -c 301-350`
+C_FLAGS8=`cat c_compiler_flags | cut -c 351-400`
+
+
+
+F_FLAGS1=`cat f_compiler_flags | cut -c 1-50`
+F_FLAGS2=`cat f_compiler_flags | cut -c 51-100`
+F_FLAGS3=`cat f_compiler_flags | cut -c 101-150`
+F_FLAGS4=`cat f_compiler_flags | cut -c 151-200`
+F_FLAGS5=`cat f_compiler_flags | cut -c 201-250`
+F_FLAGS6=`cat f_compiler_flags | cut -c 251-300`
+F_FLAGS7=`cat f_compiler_flags | cut -c 301-350`
+F_FLAGS8=`cat f_compiler_flags | cut -c 351-400`
+
+
+
+LFLAGS1=`cat loader_flags | cut -c 1-50`
+LFLAGS2=`cat loader_flags | cut -c 51-100`
+LFLAGS3=`cat loader_flags | cut -c 101-150`
+LFLAGS4=`cat loader_flags | cut -c 151-200`
+LFLAGS5=`cat loader_flags | cut -c 201-250`
+LFLAGS6=`cat loader_flags | cut -c 251-300`
+LFLAGS7=`cat loader_flags | cut -c 301-350`
+LFLAGS8=`cat loader_flags | cut -c 351-400`
+
+
+
+cat > buildstats.F90 << EOF
+!!****f* object/buildstats
+!!
+!! NAME
+!!
+!!  buildstats
+!!
+!!
+!! SYNOPSIS
+!!
+!!  call buildstats(build_date, build_dir, build_machine, setup_call, c_flags, f_flags, lflags)
+!!
+!!  call buildstats(character, character, character, character, character, character, lflags)
+!!
+!! 
+!! DESCRIPTION
+!!
+!!  Simple subroutine generated at build time that returns the build date
+!!  build directory, build machine, and the full setup command used to 
+!!  assemble the FLASH executable.
+!!
+!!  Each string is of size MAX_STRING_SIZE, as defined in flash_defines.fh.
+!!
+!!***
+
+subroutine buildstats(build_date, build_dir, build_machine, setup_call, c_flags, f_flags, lflags)
+
+
+  implicit none
+
+#include "flash_defines.fh"
+
+  character (len=100) :: build_date, build_dir, build_machine
+  character (len=400) :: c_flags, f_flags, lflags
+  character (len=1000) :: setup_call   
+  character (len=50), dimension(20) :: temp
+
+
+! we will store the strings in the temporary array, which is the same size
+! as the cut used when generating the data.  This way, they are guaranteed to
+! not go out of bounds.  
+
+  temp(1) = "$BUILD_DATE1"
+  temp(2) = "$BUILD_DATE2"
+  build_date = temp(1) // temp(2)
+
+
+  temp(1) = "$BUILD_DIR1"
+  temp(2) = "$BUILD_DIR2"
+  build_dir = temp(1) // temp(2)
+
+  temp(1) = "$BUILD_MACHINE1"
+  temp(2) = "$BUILD_MACHINE2"
+  build_machine = temp(1) // temp(2)
+
+  temp(1) = "$SETUP_CALL1"
+  temp(2) = "$SETUP_CALL2"
+  temp(3) = "$SETUP_CALL3"
+  temp(4) = "$SETUP_CALL4"
+  temp(5) = "$SETUP_CALL5"
+  temp(6) = "$SETUP_CALL6"
+  temp(7) = "$SETUP_CALL7"
+  temp(8) = "$SETUP_CALL8"
+  temp(9) = "$SETUP_CALL9"
+  temp(10) = "$SETUP_CALL10"
+  temp(11) = "$SETUP_CALL11"
+  temp(12) = "$SETUP_CALL12"
+  temp(13) = "$SETUP_CALL13"
+  temp(14) = "$SETUP_CALL14"
+  temp(15) = "$SETUP_CALL15"
+  temp(16) = "$SETUP_CALL16"
+  temp(17) = "$SETUP_CALL17"
+  temp(18) = "$SETUP_CALL18"
+  temp(19) = "$SETUP_CALL19"
+  temp(20) = "$SETUP_CALL20"
+
+
+  setup_call = temp(1) // temp(2) // temp(3) // temp(4) // temp(5) &
+         // temp(6) // temp(7) // temp(8) // temp(9) // temp(10) &
+        // temp(11) // temp(12) // temp(13) // temp(14) // temp(15) &
+        // temp(16) // temp(17) // temp(18) // temp(19) // temp(20) 
+
+
+   temp(1) = "$C_FLAGS1"
+   temp(2) = "$C_FLAGS2"
+   temp(3) = "$C_FLAGS3"
+   temp(4) = "$C_FLAGS4"
+   temp(5) = "$C_FLAGS5"
+   temp(6) = "$C_FLAGS6"
+   temp(7) = "$C_FLAGS7"
+   temp(8) = "$C_FLAGS8"
+
+   c_flags = temp(1) // temp(2) // temp(3) // temp(4) // temp(5) &
+             // temp(6) // temp(7) // temp(8)
+
+
+   temp(1) = "$F_FLAGS1"
+   temp(2) = "$F_FLAGS2"
+   temp(3) = "$F_FLAGS3"
+   temp(4) = "$F_FLAGS4"
+   temp(5) = "$F_FLAGS5"
+   temp(6) = "$F_FLAGS6"
+   temp(7) = "$F_FLAGS7"
+   temp(8) = "$F_FLAGS8"
+
+   f_flags = temp(1) // temp(2) // temp(3) // temp(4) // temp(5) &
+             // temp(6) // temp(7) // temp(8)
+
+
+
+   temp(1) = "$LFLAGS1"
+   temp(2) = "$LFLAGS2"
+   temp(3) = "$LFLAGS3"
+   temp(4) = "$LFLAGS4"
+   temp(5) = "$LFLAGS5"
+   temp(6) = "$LFLAGS6"
+   temp(7) = "$LFLAGS7"
+   temp(8) = "$LFLAGS8"
+
+   lflags = temp(1) // temp(2) // temp(3) // temp(4) // temp(5) &
+             // temp(6) // temp(7) // temp(8)
+
+
+
+  return
+end subroutine buildstats
+
+EOF
+
+
+

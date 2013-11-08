@@ -1,0 +1,4 @@
+#!/bin/sh
+cmd=`cat setup_call`
+cd ../bin
+exec $cmd

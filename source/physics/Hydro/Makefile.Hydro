@@ -1,0 +1,7 @@
+#
+# makefile for hydro module
+#
+
+Hydro += Hydro.o Hydro_init.o Hydro_data.o
+
+Hydro.o : Hydro_data.o

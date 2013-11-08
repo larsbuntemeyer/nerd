@@ -1,0 +1,7 @@
+#
+# makefile for grid module
+#
+
+Grid += Grid.o Grid_init.o Grid_data.o
+
+Grid.o : Grid_data.o
