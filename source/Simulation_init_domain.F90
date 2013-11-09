@@ -19,10 +19,10 @@ subroutine Simulation_init_domain
    rho_l = rho_left
    vx_l  = vx_left
    vx_r  = vx_right
-   rho_r = 0.1
-   rho_l = 1.0
-   vx_l  = 0.0
-   vx_r  = 0.0
+   rho_r = 1.d-1
+   rho_l = 1.d0
+   vx_l  = 1.d-1
+   vx_r  = 1.d-1
    !
    xctr  = 0.5d0*(xmax-xmin)
    yctr  = 0.5d0*(ymax-ymin)

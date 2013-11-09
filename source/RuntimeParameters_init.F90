@@ -14,7 +14,7 @@ subroutine RuntimeParameters_init
    zmax=0.d0
    !
    cfl = 0.8
-   n_max = 10000
+   n_max = 10
    gamma = 5.d0/3.d0
    mu_mol = 1.0
    !

@@ -53,6 +53,10 @@ subroutine Grid_init
    dy = (ymax-ymin)/ny
    dz = (zmax-zmin)/nz
    !
+   write(*,*) 'dx:', dx
+   write(*,*) 'dy:', dy
+   write(*,*) 'dz:', dz
+   !
    write(*,*) 'initializing grid-coordinates'
    !
    do i=1,nx+2*nguard

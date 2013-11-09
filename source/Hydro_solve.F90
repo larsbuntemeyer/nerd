@@ -136,12 +136,13 @@ subroutine Hydro_solve(dt)
       do j=nguard+k2d,ny+k2d*(nguard+1)
          do k=nguard+k3d,nz+k3d*(nguard+1)
             !
-            vxf(i,j,k) = 0.5d0*(state(2,i,j,k)   / state(1,i,j,k) +  &
-                                state(2,i-1,j,k) / state(1,i-1,j,k)) 
-            vyf(i,j,k) = 0.5d0*(state(3,i,j,k)   / state(1,i,j,k) +  &
-                                state(3,i,j-1,k) / state(1,i,j-1,k)) 
-            vyf(i,j,k) = 0.5d0*(state(4,i,j,k)   / state(1,i,j,k) +  &
-                                state(4,i,j,k-1) / state(1,i,j,k-1)) 
+            !vxf(i,j,k) = 0.5d0*(state(2,i,j,k)   / state(1,i,j,k) +  &
+            !                    state(2,i-1,j,k) / state(1,i-1,j,k)) 
+            !vyf(i,j,k) = 0.5d0*(state(3,i,j,k)   / state(1,i,j,k) +  &
+            !                    state(3,i,j-1,k) / state(1,i,j-1,k)) 
+            !vzf(i,j,k) = 0.5d0*(state(4,i,j,k)   / state(1,i,j,k) +  &
+            !                    state(4,i,j,k-1) / state(1,i,j,k-1)) 
+            vxf(i,j,k) = 0.5d0 * (vx(i,j,k) + vx(i-1,j,k))
             !
          enddo
       enddo
@@ -177,8 +178,8 @@ subroutine Hydro_solve(dt)
       do j=nguard+k2d,ny+k2d*nguard
          do k=nguard+k3d,nz+k3d*nguard
             do ivar=1,nvar
-               state(ivar,i,j,k) = state(ivar,i,j,k) -         &
-                                   dt/dx * (flux(ivar,i+1,j,k) - flux(ivar,i,j,k))
+               state(ivar,i,j,k) = state(ivar,i,j,k) +         &
+                                   dt/dx * (flux(ivar,i,j,k) - flux(ivar,i+1,j,k))
             enddo
          enddo
       enddo
@@ -189,17 +190,15 @@ subroutine Hydro_solve(dt)
    do i=nguard+1,nx+nguard
       do j=nguard+k2d,ny+k2d*nguard
          do k=nguard+k3d,nz+k3d*nguard
-            do ivar=1,nvar
-               rho = state(1,i,j,k)
-               dens(i,j,k) = rho 
-               vx(i,j,k)   = state(2,i,j,k) / rho
-            !   vy(i,j,k)   = state(3,i,j,k) / rho
-            !   vz(i,j,k)   = state(4,i,j,k) / rho
-               vtot2       = vx(i,j,k)**2+vy(i,j,k)**2+vz(i,j,k)**2
-               ekin        = 0.5d0 * vtot2
-               ener(i,j,k) = state(5,i,j,k) / rho
-               eint(i,j,k) = ener(i,j,k) - ekin
-            enddo
+            rho = state(1,i,j,k)
+            dens(i,j,k) = rho 
+            !vx(i,j,k)   = state(2,i,j,k) / rho
+            vy(i,j,k)   = state(3,i,j,k) / rho
+            vz(i,j,k)   = state(4,i,j,k) / rho
+            vtot2       = vx(i,j,k)**2+vy(i,j,k)**2+vz(i,j,k)**2
+            ekin        = 0.5d0 * vtot2
+            ener(i,j,k) = state(5,i,j,k) / rho
+            eint(i,j,k) = ener(i,j,k) - ekin
          enddo
       enddo
    enddo 
