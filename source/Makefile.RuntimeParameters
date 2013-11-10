@@ -2,9 +2,6 @@
 # makefile for database module
 #
 
-RuntimeParameters += RuntimeParameters.o RuntimeParameters_data.o \
-                     RuntimeParameters_init.o
+RuntimeParameters += RuntimeParameters.o 
 
-RuntimeParameters.o : RuntimeParameters_data.o
-
-RuntimeParameters_init.o : RuntimeParameters_data.o
+RuntimeParameters.o : 

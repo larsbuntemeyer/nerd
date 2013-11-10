@@ -2,15 +2,15 @@
 # makefile for NERD 
 #
 
-F90 = gfortran
-#F90 = ifort
+#F90 = gfortran
+F90 = ifort
 EXE = nerd
 
 SOURCE  = ../source
 INCLUDE = ../include
 
 # compiler flags
-CFLAGS  = -O3
+CFLAGS  = -check all
 
 # linker flags
 LFLAGS  =

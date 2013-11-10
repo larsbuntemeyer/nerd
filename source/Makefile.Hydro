@@ -2,8 +2,7 @@
 # makefile for hydro module
 #
 
-Hydro += Hydro.o Hydro_init.o Hydro_data.o Hydro_solve.o Hydro_cfl_timestep.o
+Hydro += Hydro.o 
 
-Hydro.o : Hydro_data.o Hydro_solve.o
+Hydro.o : Grid.o Database.o RuntimeParameters.o 
 
-Hydro_solve.o : Grid.o Database.o RuntimeParameters.o

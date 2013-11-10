@@ -1,4 +1,6 @@
 !
+!
+!
 module Eos  
    !
    use Grid 
@@ -8,9 +10,13 @@ module Eos
    !
    implicit none
    !
+   public :: Eos_gamma
+   !
    integer :: i,j,k
    !
    contains 
+   !
+   !
    !
    subroutine Eos_gamma
       !
