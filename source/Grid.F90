@@ -52,6 +52,16 @@ subroutine Grid_init
    k3d     = 0
    nguard  = 1
    !
+   ! Precalculate loop indices as following:
+   ! -----------------------------------------------------------------------------------------------
+   !  ibg|              |    ib    |                 |     ie    |                   |     ieg     |
+   ! -----------------------------------------------------------------------------------------------
+   ! 
+   ! | 1 | ... | nguard | nguard+1 | ... | ... | ... | nguard+nx | nguard+nx+1 | ... | 2*nguard+nx |
+   ! -----------------------------------------------------------------------------------------------
+   ! |   guard cells    |             valid cells                |          guard cells            |
+   ! 
+   !
    ! loop ranges including guardcells
    !
    ibg     = 1
@@ -63,12 +73,14 @@ subroutine Grid_init
    !
    ! loop ranges excluding guardcells
    !
-   ib      = 1+nguard
+   ib      = nguard+1
    ie      = nx+nguard
-   jb      = k2d+k2d*nguard
-   je      = ny+k2d*(nguard)
-   kb      = k3d+k3d*nguard
-   ke      = nz+k3d*(nguard)
+   jb      = k2d*nguard+1
+   je      = ny+k2d*nguard
+   kb      = k3d*nguard+1
+   ke      = nz+k3d*nguard
+   !
+   !
    !
    write(*,*) '----- Grid_init -------------------'
    write(*,*) 'grid parameters:'

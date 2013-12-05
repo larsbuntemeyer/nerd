@@ -48,7 +48,7 @@ end subroutine Io_init
          do j=1,ny+k2d*2*nguard
             do k=1,nz+k3d*2*nguard
                !
-               write(outdata_unit,*) i,j,k,dens(i,j,k),vx(i,j,k),pres(i,j,k)
+               write(outdata_unit,'(3I5,3F13.8)') i,j,k,dens(i,j,k),u(i,j,k),pres(i,j,k)
                !
             enddo  
          enddo  

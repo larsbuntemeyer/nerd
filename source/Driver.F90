@@ -63,7 +63,7 @@ subroutine Driver_evolve
    !
    do step=1,n_max
       !
-      vmax = maxval(vx)
+      vmax = maxval(u)
       if(vmax>0.d0) then
          dt = cfl*dx/vmax
       else
@@ -73,7 +73,7 @@ subroutine Driver_evolve
       current_time = current_time + dt  
       !
       call Hydro_solve(dt) 
-      call Eos_gamma 
+   !   call Eos_gamma 
       !
       write(*,*) 'step:', step,                    &
                  'current time:', current_time,    &

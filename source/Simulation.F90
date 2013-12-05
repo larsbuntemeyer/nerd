@@ -62,13 +62,13 @@ subroutine Simulation_init_domain
             !
             if(xcCoord(i) < xctr) then
               dens(i,j,k) = rho_l
-              vx(i,j,k) = vx_l
+              u(i,j,k) = vx_l
             else
               dens(i,j,k) = rho_r
-              vx(i,j,k) = vx_r
+              u(i,j,k) = vx_r
             endif
             !
-            ek = 0.5d0*vx(i,j,k)**2
+            ek = 0.5d0*u(i,j,k)**2
             e = 1.0 + ek
             ener(i,j,k) = e
             eint(i,j,k) = e - ek
