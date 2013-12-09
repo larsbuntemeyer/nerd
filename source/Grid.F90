@@ -50,7 +50,7 @@ subroutine Grid_init
    nz      = 1
    k2d     = 0
    k3d     = 0
-   nguard  = 1
+   nguard  = 2
    !
    ! Precalculate loop indices as following:
    ! -----------------------------------------------------------------------------------------------

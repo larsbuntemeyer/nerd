@@ -10,7 +10,8 @@ module Hydro
    !
    public  :: Hydro_init, Hydro_solve
    !
-   private :: hydro1D, fill_guardcells
+   private :: hydro1D, fill_guardcells, minmod, &
+              interface_flux
    !
 contains
    !
@@ -113,19 +114,22 @@ contains
          do j=jb,je+k2d
             do k=kb,ke+k3d
                !
-               if(uf(i,j,k) < 0.d0) then
-                  flux(1,i,j,k) = uf(i,j,k) *  state(1,i,j,k) 
-                  flux(2,i,j,k) = uf(i,j,k) *  state(2,i,j,k) + pres(i,j,k)
-                  flux(3,i,j,k) = uf(i,j,k) *  state(3,i,j,k)
-                  flux(4,i,j,k) = uf(i,j,k) *  state(4,i,j,k)
-                  flux(5,i,j,k) = uf(i,j,k) * (state(5,i,j,k) + pres(i,j,k))
-               else 
-                  flux(1,i,j,k) = uf(i,j,k) *  state(1,i-1,j,k) 
-                  flux(2,i,j,k) = uf(i,j,k) *  state(2,i-1,j,k) + pres(i,j,k)
-                  flux(3,i,j,k) = uf(i,j,k) *  state(3,i-1,j,k)
-                  flux(4,i,j,k) = uf(i,j,k) *  state(4,i-1,j,k)
-                  flux(5,i,j,k) = uf(i,j,k) * (state(5,i-1,j,k) + pres(i,j,k))
-               endif
+               flux(1,i,j,k) = interface_flux(state(1,i-2,j,k),state(1,i-1,j,k), &
+                                              state(1,i,j,k),  state(1,i+1,j,k), &
+                                              uf(i,j,k),dt)
+             !  if(uf(i,j,k) < 0.d0) then
+             !     flux(1,i,j,k) = uf(i,j,k) *  state(1,i,j,k) 
+             !     flux(2,i,j,k) = uf(i,j,k) *  state(2,i,j,k) + pres(i,j,k)
+             !     flux(3,i,j,k) = uf(i,j,k) *  state(3,i,j,k)
+             !     flux(4,i,j,k) = uf(i,j,k) *  state(4,i,j,k)
+             !     flux(5,i,j,k) = uf(i,j,k) * (state(5,i,j,k) + pres(i,j,k))
+             !  else 
+             !     flux(1,i,j,k) = uf(i,j,k) *  state(1,i-1,j,k) 
+             !     flux(2,i,j,k) = uf(i,j,k) *  state(2,i-1,j,k) + pres(i,j,k)
+             !     flux(3,i,j,k) = uf(i,j,k) *  state(3,i-1,j,k)
+             !     flux(4,i,j,k) = uf(i,j,k) *  state(4,i-1,j,k)
+             !     flux(5,i,j,k) = uf(i,j,k) * (state(5,i-1,j,k) + pres(i,j,k))
+             !  endif
                !
             enddo
          enddo
@@ -200,58 +204,94 @@ contains
             enddo
          enddo
       enddo 
-  !    do j=ibg,ieg
-  !       do i=jbg,nguard
-  !          do k=kbg,keg
-  !             !
-  !             dens(i,j,k) = dens(i,jb,k)
-  !             eint(i,j,k) = eint(i,jb,k)
-  !             u(i,j,k) = u(i,jb,k)
-  !             v(i,j,k) = v(i,jb,k)
-  !             w(i,j,k) = w(i,jb,k)
-  !             !
-  !          enddo
-  !       enddo
-  !    enddo 
-  !    do j=ny+k2d*(nguard+1),ny+2*k2d*nguard
-  !       do i=1,nx+2*nguard
-  !          do k=1,nz+2*k3d*nguard
-  !             !
-  !             dens(i,j,k) = dens(i,ny+k2d*nguard,k)
-  !             eint(i,j,k) = eint(i,ny+k2d*nguard,k)
-  !             u(i,j,k) = u(i,ny+k2d*nguard,k)
-  !             v(i,j,k) = v(i,ny+k2d*nguard,k)
-  !             w(i,j,k) = w(i,ny+k2d*nguard,k)
-  !             !
-  !          enddo
-  !       enddo
-  !    enddo 
-  !    do k=1,1+k3d*nguard
-  !       do i=1,nx+2*nguard
-  !          do j=1,ny+2*k2d*nguard
-  !             !
-  !             dens(i,j,k) = dens(i,j,k3d*nguard+1)
-  !             eint(i,j,k) = eint(i,j,k3d*nguard+1)
-  !             u(i,j,k) = u(i,j,k3d*nguard+1)
-  !             v(i,j,k) = v(i,j,k3d*nguard+1)
-  !             w(i,j,k) = w(i,j,k3d*nguard+1)
-  !             !
-  !          enddo
-  !       enddo
-  !    enddo 
-  !    do k=nz+k3d*(nguard+1),nz+2*k3d*nguard
-  !       do i=1,nx+2*nguard
-  !          do j=1,ny+2*k3d*nguard
-  !             !
-  !             dens(i,j,k) = dens(i,j,nz+k3d*nguard)
-  !             eint(i,j,k) = eint(i,j,nz+k3d*nguard)
-  !             u(i,j,k) = u(i,j,nz+k3d*nguard)
-  !             v(i,j,k) = v(i,j,nz+k3d*nguard)
-  !             w(i,j,k) = w(i,j,nz+k3d*nguard)
-  !             !
-  !          enddo
-  !       enddo
-  !    enddo 
+      !
    end subroutine fill_guardcells
+   !
+   !
+   !
+   double precision function interface_flux(q1,q2,q3,q4,v_face,dt)
+      !
+      implicit none
+      !
+      double precision :: q1,q2,q3,q4
+      double precision :: v_face,dt
+      double precision :: r,phi,flux,theta
+      !
+      theta = sign(1.d0,v_face)
+      !
+      if(abs(q3-q2).gt.0.d0) then
+         if(v_face.ge.0d0) then
+            r = (q2-q1)/(q3-q2)
+         else 
+            r = (q4-q3)/(q3-q2)
+         endif
+      else
+         r = 0.d0
+      endif
+      !
+      select case(fl)
+         !
+         case('donor-cell')
+            phi = 0.d0
+         case('Lax-Wendroff')
+            phi = 1.d0
+         case('Beam-Warming')
+            phi = r
+         case('Fromm')
+            phi = 0.5d0*(1.d0+r)
+         case('minmod')
+            phi = minmod(1.d0,r)
+         case('superbee')
+            phi = max(0.d0,min(1.d0,2.d0*r),min(2.d0,r))
+         case default
+            phi = 0.d0
+      end select
+      !
+      flux = 0.5d0*v_face*((1.d0+theta)*q2+(1.d0-theta)*q3) +  &
+             0.5d0*abs(v_face)*(1.d0-abs(v_face*dt/dx))*phi*(q3-q2)
+             !
+      interface_flux = flux
+      !
+   end function interface_flux
+   !
+   !
+   !
+   double precision function slope_limiter(slope,q1,q2,q3,q4,v)
+      !
+      implicit none
+      !
+      character(80)    :: slope
+      double precision :: q1,q2,q3,q4
+      double precision :: v 
+      !
+      select case(slope)
+         !
+      end select
+      !
+      slope_limiter = 0.d0
+      !
+   end function slope_limiter
+   !
+   !
+   !
+   double precision function minmod(a,b)
+      !
+      implicit none
+      !
+      double precision :: a,b,c
+      !
+      if(a*b.gt.0.d0) then
+         if (abs(a).lt.abs(b)) then 
+             c = a
+         else
+             c = b
+         endif
+      else
+         c = 0
+      endif
+      !
+      minmod = c 
+      !
+   end function minmod
    !
 end module Hydro
