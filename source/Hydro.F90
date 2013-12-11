@@ -142,7 +142,7 @@ contains
             do k=kb,ke
                do ivar=1,nvar
                   state(ivar,i,j,k) = state(ivar,i,j,k) +         &
-                                      dt/dx * (flux(ivar,i,j,k) - flux(ivar,i+1,j,k))
+                       dt/(xrCoord(i)-xlCoord(i)) * (flux(ivar,i,j,k) - flux(ivar,i+1,j,k))
                enddo
             enddo
          enddo
@@ -207,7 +207,7 @@ contains
       !
    end subroutine fill_guardcells
    !
-   !
+   ! 
    !
    double precision function interface_flux(q1,q2,q3,q4,v_face,dt)
       !
