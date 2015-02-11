@@ -30,14 +30,59 @@ contains
    !
    !----------------------------------------------------------------------------------------------
    !
-   subroutine sweep1D
+   subroutine sweep1D(dt,dir)
       !
       implicit none
       !
-      write(*,*) '----- sweep1D ------------------'
-      write(*,*) 'Hydro is not doing anything yet,   '
-      write(*,*) 'because i have to admit, i was lazy'
-      write(*,*) '----- Hydro_init done -------------'
+      real,    intent(in) :: dt
+      integer, intent(in) :: dir
+      !
+      ! the current fluxes:
+      ! the flux is defined at the cell interfaces, so we
+      ! for an x-grid with nx cells, we have nx+2*nguard+1
+      ! cell interfaces
+      !
+      real, dimension(nvar,ibg:ieg+1,jbg:jeg+1,kbg:keg+1) :: flux,dq
+      real, dimension(nvar,ibg:ieg  ,jbg:jeg  ,kbg:keg  ) :: q
+      !
+      real :: rho,ei,ekin,vtot2
+      real :: fx,fy,fz
+      !
+      integer :: i,j,k,ivar
+      !
+      ! Compute conserved variables
+      !
+      do k=kbg,keg
+         do j=jbg,jeg
+            do i=ibg,ieg
+               !
+               vtot2 = u(i,j,k)**2+v(i,j,k)**2+w(i,j,k)**2
+               rho   = dens(i,j,k)
+               ekin  = 0.5d0 * vtot2
+               !
+               q(1,i,j,k) = rho
+               q(2,i,j,k) = rho * u(i,j,k)
+               q(3,i,j,k) = rho * v(i,j,k)
+               q(4,i,j,k) = rho * w(i,j,k)
+               q(5,i,j,k) = rho * (eint(i,j,k) + ekin)
+               !
+            enddo
+         enddo
+      enddo
+      !
+      ! Compute jumps in conserved quantities
+      !
+      do ivar=1,nvar
+        do k=kbg,keg
+          do j=jbg,jeg
+            do i=ibg+1,ieg-1
+              !
+              dq(ivar,i,j,k) = q(ivar,i,j,k) - q(ivar,i-1,j,k)
+              !
+            enddo
+          enddo
+        enddo
+      enddo
       !
    end subroutine sweep1D
    !
