@@ -93,7 +93,7 @@ end subroutine Driver_finish
 !
 !
 !
-double precision function get_cfl_timestep
+double precision function get_cfl_timestep()
    !
    implicit none
    !

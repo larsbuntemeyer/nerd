@@ -45,7 +45,7 @@ subroutine Grid_init
    integer        :: i,j,k
    !
    ndim    = 1
-   nx      = 1000
+   nx      = 200
    ny      = 1
    nz      = 1
    k2d     = 0

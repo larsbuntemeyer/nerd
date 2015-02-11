@@ -63,7 +63,7 @@ contains
       ! cell interfaces 
       !
       double precision, dimension(nvar,ibg:ieg+1,jbg:jeg+1,kbg:keg+1) :: flux
-      double precision, dimension(nvar,ibg:ieg  ,jbg:jeg  ,kbg:keg  ) :: state
+      double precision, dimension(nvar,ibg:ieg  ,jbg:jeg  ,kbg:keg  ) :: q,dq
       !
       double precision :: rho,ei,ekin,vtot2
       double precision :: fx,fy,fz 
@@ -80,12 +80,26 @@ contains
                rho   = dens(i,j,k)
                ekin  = 0.5d0 * vtot2
                !
-               state(1,i,j,k) = rho 
-               state(2,i,j,k) = rho * u(i,j,k)
-               state(3,i,j,k) = rho * v(i,j,k)
-               state(4,i,j,k) = rho * w(i,j,k)
-               state(5,i,j,k) = rho * (eint(i,j,k) + ekin)
+               q(1,i,j,k) = rho 
+               q(2,i,j,k) = rho * u(i,j,k)
+               q(3,i,j,k) = rho * v(i,j,k)
+               q(4,i,j,k) = rho * w(i,j,k)
+               q(5,i,j,k) = rho * (eint(i,j,k) + ekin)
                !
+            enddo
+         enddo
+      enddo 
+      !
+      ! Compute jumps conserved variables
+      !
+      do i=ibg,ieg
+         do j=jbg,jeg
+            do k=kbg,keg
+               do ivar=1,nvar
+                  !
+                  dq(ivar,i,j,k) = q(ivar,i,j,k)-q(ivar,i-1,j,k)
+                  !
+               enddo
             enddo
          enddo
       enddo 
@@ -96,12 +110,12 @@ contains
          do j=jb,je+k2d
             do k=kb,ke+k3d
                !
-               !uf(i,j,k) = 0.5d0*(state(2,i,j,k)   / state(1,i,j,k) +  &
-               !                    state(2,i-1,j,k) / state(1,i-1,j,k)) 
-               !vf(i,j,k) = 0.5d0*(state(3,i,j,k)   / state(1,i,j,k) +  &
-               !                    state(3,i,j-1,k) / state(1,i,j-1,k)) 
-               !wf(i,j,k) = 0.5d0*(state(4,i,j,k)   / state(1,i,j,k) +  &
-               !                    state(4,i,j,k-1) / state(1,i,j,k-1)) 
+               !uf(i,j,k) = 0.5d0*(q(2,i,j,k)   / q(1,i,j,k) +  &
+               !                    q(2,i-1,j,k) / q(1,i-1,j,k)) 
+               !vf(i,j,k) = 0.5d0*(q(3,i,j,k)   / q(1,i,j,k) +  &
+               !                    q(3,i,j-1,k) / q(1,i,j-1,k)) 
+               !wf(i,j,k) = 0.5d0*(q(4,i,j,k)   / q(1,i,j,k) +  &
+               !                    q(4,i,j,k-1) / q(1,i,j,k-1)) 
                uf(i,j,k) = 0.5d0 * (u(i,j,k) + u(i-1,j,k))
                !
             enddo
@@ -114,21 +128,21 @@ contains
          do j=jb,je+k2d
             do k=kb,ke+k3d
                !
-               flux(1,i,j,k) = interface_flux(state(1,i-2,j,k),state(1,i-1,j,k), &
-                                              state(1,i,j,k),  state(1,i+1,j,k), &
+               flux(1,i,j,k) = interface_flux(q(1,i-2,j,k),q(1,i-1,j,k), &
+                                              q(1,i,j,k),  q(1,i+1,j,k), &
                                               uf(i,j,k),dt)
              !  if(uf(i,j,k) < 0.d0) then
-             !     flux(1,i,j,k) = uf(i,j,k) *  state(1,i,j,k) 
-             !     flux(2,i,j,k) = uf(i,j,k) *  state(2,i,j,k) + pres(i,j,k)
-             !     flux(3,i,j,k) = uf(i,j,k) *  state(3,i,j,k)
-             !     flux(4,i,j,k) = uf(i,j,k) *  state(4,i,j,k)
-             !     flux(5,i,j,k) = uf(i,j,k) * (state(5,i,j,k) + pres(i,j,k))
+             !     flux(1,i,j,k) = uf(i,j,k) *  q(1,i,j,k) 
+             !     flux(2,i,j,k) = uf(i,j,k) *  q(2,i,j,k) + pres(i,j,k)
+             !     flux(3,i,j,k) = uf(i,j,k) *  q(3,i,j,k)
+             !     flux(4,i,j,k) = uf(i,j,k) *  q(4,i,j,k)
+             !     flux(5,i,j,k) = uf(i,j,k) * (q(5,i,j,k) + pres(i,j,k))
              !  else 
-             !     flux(1,i,j,k) = uf(i,j,k) *  state(1,i-1,j,k) 
-             !     flux(2,i,j,k) = uf(i,j,k) *  state(2,i-1,j,k) + pres(i,j,k)
-             !     flux(3,i,j,k) = uf(i,j,k) *  state(3,i-1,j,k)
-             !     flux(4,i,j,k) = uf(i,j,k) *  state(4,i-1,j,k)
-             !     flux(5,i,j,k) = uf(i,j,k) * (state(5,i-1,j,k) + pres(i,j,k))
+             !     flux(1,i,j,k) = uf(i,j,k) *  q(1,i-1,j,k) 
+             !     flux(2,i,j,k) = uf(i,j,k) *  q(2,i-1,j,k) + pres(i,j,k)
+             !     flux(3,i,j,k) = uf(i,j,k) *  q(3,i-1,j,k)
+             !     flux(4,i,j,k) = uf(i,j,k) *  q(4,i-1,j,k)
+             !     flux(5,i,j,k) = uf(i,j,k) * (q(5,i-1,j,k) + pres(i,j,k))
              !  endif
                !
             enddo
@@ -141,7 +155,7 @@ contains
          do j=jb,je
             do k=kb,ke
                do ivar=1,nvar
-                  state(ivar,i,j,k) = state(ivar,i,j,k) +         &
+                  q(ivar,i,j,k) = q(ivar,i,j,k) +         &
                        dt/(xrCoord(i)-xlCoord(i)) * (flux(ivar,i,j,k) - flux(ivar,i+1,j,k))
                enddo
             enddo
@@ -153,14 +167,14 @@ contains
       do i=ib,ie
          do j=jb,je
             do k=kb,ke
-               rho = state(1,i,j,k)
+               rho = q(1,i,j,k)
                dens(i,j,k) = rho 
-               !u(i,j,k)   = state(2,i,j,k) / rho
-               v(i,j,k)   = state(3,i,j,k) / rho
-               w(i,j,k)   = state(4,i,j,k) / rho
+               !u(i,j,k)   = q(2,i,j,k) / rho
+               v(i,j,k)   = q(3,i,j,k) / rho
+               w(i,j,k)   = q(4,i,j,k) / rho
                vtot2       = u(i,j,k)**2+v(i,j,k)**2+w(i,j,k)**2
                ekin        = 0.5d0 * vtot2
-               ener(i,j,k) = state(5,i,j,k) / rho
+               ener(i,j,k) = q(5,i,j,k) / rho
                eint(i,j,k) = ener(i,j,k) - ekin
             enddo
          enddo
