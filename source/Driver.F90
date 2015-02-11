@@ -49,8 +49,8 @@ subroutine Driver_evolve
    implicit none
    !
    integer          :: step
-   double precision :: current_time
-   double precision :: dt, vmax
+   real :: current_time
+   real :: dt, vmax
    !
    write(*,*) '----- Driver_evolve_nerd ----------'
    !
@@ -93,12 +93,12 @@ end subroutine Driver_finish
 !
 !
 !
-double precision function get_cfl_timestep()
+real function get_cfl_timestep()
    !
    implicit none
    !
-   double precision :: dt 
-   double precision :: vmax
+   real :: dt
+   real :: vmax
    !
    vmax = maxval(abs(u))
    if(ndim.ge.2) vmax = max(vmax,maxval(abs(v)))

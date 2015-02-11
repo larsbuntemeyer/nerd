@@ -13,23 +13,23 @@ module Database
    !
    !  the state-variables
    !
-   double precision, dimension(:,:,:), allocatable :: dens
-   double precision, dimension(:,:,:), allocatable :: eint
-   double precision, dimension(:,:,:), allocatable :: u 
-   double precision, dimension(:,:,:), allocatable :: v 
-   double precision, dimension(:,:,:), allocatable :: w 
+   real, dimension(:,:,:), allocatable :: dens
+   real, dimension(:,:,:), allocatable :: eint
+   real, dimension(:,:,:), allocatable :: u
+   real, dimension(:,:,:), allocatable :: v
+   real, dimension(:,:,:), allocatable :: w
    !
    !  derived variables
    !
-   double precision, dimension(:,:,:), allocatable :: ener
-   double precision, dimension(:,:,:), allocatable :: pres
-   double precision, dimension(:,:,:), allocatable :: temp
+   real, dimension(:,:,:), allocatable :: ener
+   real, dimension(:,:,:), allocatable :: pres
+   real, dimension(:,:,:), allocatable :: temp
    !
    !  the velocity field at the cell interfaces
    !
-   double precision, dimension(:,:,:), allocatable :: uf
-   double precision, dimension(:,:,:), allocatable :: vf
-   double precision, dimension(:,:,:), allocatable :: wf
+   real, dimension(:,:,:), allocatable :: uf
+   real, dimension(:,:,:), allocatable :: vf
+   real, dimension(:,:,:), allocatable :: wf
    !
    !
    !--------------------------------------------------------
@@ -60,6 +60,7 @@ contains
       allocate(ener(nx+2*nguard,ny+2*k2d*nguard,nz+2*k3d*nguard))
       allocate(pres(nx+2*nguard,ny+2*k2d*nguard,nz+2*k3d*nguard))
       allocate(temp(nx+2*nguard,ny+2*k2d*nguard,nz+2*k3d*nguard))
+      !
       write(*,*) '----- Database_init done ----------'
       !
    end subroutine Database_init

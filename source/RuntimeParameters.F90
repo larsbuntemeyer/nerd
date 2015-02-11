@@ -10,21 +10,21 @@ module RuntimeParameters
    !  time
    !
    integer          , save :: n_max
-   double precision , save :: t_max
+   real , save :: t_max
    !
    !  more
    !
-   double precision        :: xmin,xmax
-   double precision        :: ymin,ymax
-   double precision        :: zmin,zmax
+   real        :: xmin,xmax
+   real        :: ymin,ymax
+   real        :: zmin,zmax
    !
-   double precision        :: cfl
-   double precision        :: dtmin
-   double precision        :: dtmax
-   double precision        :: dtini
+   real        :: cfl
+   real        :: dtmin
+   real        :: dtmax
+   real        :: dtini
    !
-   double precision        :: gamma
-   double precision        :: mu_mol
+   real        :: gamma
+   real        :: mu_mol
    !
    character(80)           :: fl
    !

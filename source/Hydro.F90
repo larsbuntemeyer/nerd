@@ -1,5 +1,5 @@
 !
-!
+! Hydro module
 !
 module Hydro
    !
@@ -10,12 +10,12 @@ module Hydro
    !
    public  :: Hydro_init, Hydro_solve
    !
-   private :: hydro1D, fill_guardcells, minmod, &
+   private :: hydro1D, sweep1D, fill_guardcells, minmod, &
               interface_flux
    !
 contains
    !
-   !
+   !----------------------------------------------------------------------------------------------
    !
    subroutine Hydro_init
       !
@@ -28,13 +28,26 @@ contains
       !
    end subroutine Hydro_init
    !
+   !----------------------------------------------------------------------------------------------
    !
+   subroutine sweep1D
+      !
+      implicit none
+      !
+      write(*,*) '----- sweep1D ------------------'
+      write(*,*) 'Hydro is not doing anything yet,   '
+      write(*,*) 'because i have to admit, i was lazy'
+      write(*,*) '----- Hydro_init done -------------'
+      !
+   end subroutine sweep1D
+   !
+   !----------------------------------------------------------------------------------------------
    !
    subroutine Hydro_solve(dt)
       !
       implicit none
       !
-      double precision, intent(in) :: dt
+      real, intent(in) :: dt
       !
       if(ndim>1) then
          write(*,*) '------------------------'
@@ -49,24 +62,24 @@ contains
       !
    end subroutine Hydro_solve
    !
-   !
+   !----------------------------------------------------------------------------------------------
    !
    subroutine hydro1D(dt)
       !
       implicit none
       !
-      double precision, intent(in) :: dt
+      real, intent(in) :: dt
       !
       ! the current fluxes:
       ! the flux is defined at the cell interfaces, so we
       ! for an x-grid with nx cells, we have nx+2*nguard+1
       ! cell interfaces 
       !
-      double precision, dimension(nvar,ibg:ieg+1,jbg:jeg+1,kbg:keg+1) :: flux
-      double precision, dimension(nvar,ibg:ieg  ,jbg:jeg  ,kbg:keg  ) :: q,dq
+      real, dimension(nvar,ibg:ieg+1,jbg:jeg+1,kbg:keg+1) :: flux
+      real, dimension(nvar,ibg:ieg  ,jbg:jeg  ,kbg:keg  ) :: q,dq
       !
-      double precision :: rho,ei,ekin,vtot2
-      double precision :: fx,fy,fz 
+      real :: rho,ei,ekin,vtot2
+      real :: fx,fy,fz
       !
       integer :: i,j,k,ivar
       !
@@ -182,7 +195,7 @@ contains
       !
    end subroutine hydro1D
    !
-   !
+   !----------------------------------------------------------------------------------------------
    !
    subroutine fill_guardcells
       !
@@ -221,20 +234,20 @@ contains
       !
    end subroutine fill_guardcells
    !
-   ! 
+   !----------------------------------------------------------------------------------------------
    !
-   double precision function interface_flux(q1,q2,q3,q4,v_face,dt)
+   real function interface_flux(q1,q2,q3,q4,v_face,dt)
       !
       implicit none
       !
-      double precision :: q1,q2,q3,q4
-      double precision :: v_face,dt
-      double precision :: r,phi,flux,theta
+      real :: q1,q2,q3,q4
+      real :: v_face,dt
+      real :: r,phi,flux,theta
       !
-      theta = sign(1.d0,v_face)
+      theta = sign(1.e0,v_face)
       !
-      if(abs(q3-q2).gt.0.d0) then
-         if(v_face.ge.0d0) then
+      if(abs(q3-q2).gt.0.e0) then
+         if(v_face.ge.0e0) then
             r = (q2-q1)/(q3-q2)
          else 
             r = (q4-q3)/(q3-q2)
@@ -252,31 +265,98 @@ contains
          case('Beam-Warming')
             phi = r
          case('Fromm')
-            phi = 0.5d0*(1.d0+r)
+            phi = 0.5e0*(1.e0+r)
          case('minmod')
-            phi = minmod(1.d0,r)
+            phi = minmod(1.e0,r)
          case('superbee')
-            phi = max(0.d0,min(1.d0,2.d0*r),min(2.d0,r))
+            phi = max(0.e0,min(1.e0,2.e0*r),min(2.e0,r))
          case default
-            phi = 0.d0
+            phi = 0.e0
       end select
       !
-      flux = 0.5d0*v_face*((1.d0+theta)*q2+(1.d0-theta)*q3) +  &
-             0.5d0*abs(v_face)*(1.d0-abs(v_face*dt/dx))*phi*(q3-q2)
+      flux = 0.5d0*v_face*((1.e0+theta)*q2+(1.e0-theta)*q3) +  &
+             0.5d0*abs(v_face)*(1.e0-abs(v_face*dt/dx))*phi*(q3-q2)
              !
       interface_flux = flux
       !
    end function interface_flux
    !
+   !----------------------------------------------------------------------------------------------
    !
+   real function phi(fl,r)
    !
-   double precision function slope_limiter(slope,q1,q2,q3,q4,v)
+   implicit none
+   !
+   real,         intent(in) :: r
+   character(*), intent(in) :: fl
+   !
+   reaL :: limiter
+   !
+   select case(fl)
+     !
+     case('donor-cell')
+       limiter = 0.e0
+     case('Lax-Wendroff')
+       limiter = 1.e0
+     case('Beam-Warming')
+       limiter = r
+     case('Fromm')
+       limiter = 0.5e0*(1.e0+r)
+     case('minmod')
+       limiter = minmod(1.e0,r)
+     case('superbee')
+       limiter = max(0.e0,min(1.e0,2.e0*r),min(2.e0,r))
+     case('hyperbee')
+       limiter = 1.0!hyperbee(r)
+     case('MC')
+       limiter = max(0.e0,min(0.5e0*(1.e0+r),2.e0,2.e0*r))
+     case('van Leer')
+       limiter = (r+abs(r))/(1.e0+abs(r))
+     case('van Albada 1')
+       limiter = (r*r+r)/(r*r+1.e0)
+     case('van Albada 2')
+       limiter = (2.e0*r)/(r*r+1.e0)
+     case default
+       limiter = 0.e0
+   end select
+   !
+   phi = limiter
+   !
+   end function phi
+   !
+   !----------------------------------------------------------------------------------------------
+   !
+   subroutine roe_average(q,qa,w,n)
+      !
+      ! This subroutine computes Roe's average qa
+      ! of a quantity a using the weights w.
+      !
+      implicit none
+      !
+      integer,               intent(in)  :: n
+      real,    dimension(n), intent(in)  :: q,w
+      real,    dimension(n), intent(out) :: qa
+      !
+      integer :: i
+      !
+      do i=2,n-1
+        qa(i) = (q(i-1)*w(i-1)+q(i)*w(i))/(w(i-1)+w(i))
+      enddo
+      !
+      qa(1) = qa(2)
+      qa(n) = qa(n-1)
+      !
+   end subroutine roe_average
+   !
+   !----------------------------------------------------------------------------------------------
+   !
+   real function slope_limiter(slope,q1,q2,q3,q4,v)
       !
       implicit none
       !
       character(80)    :: slope
-      double precision :: q1,q2,q3,q4
-      double precision :: v 
+      real :: q1,q2,q3,q4
+      real :: v
       !
       select case(slope)
          !
@@ -286,13 +366,13 @@ contains
       !
    end function slope_limiter
    !
+   !----------------------------------------------------------------------------------------------
    !
-   !
-   double precision function minmod(a,b)
+   real function minmod(a,b)
       !
       implicit none
       !
-      double precision :: a,b,c
+      real :: a,b,c
       !
       if(a*b.gt.0.d0) then
          if (abs(a).lt.abs(b)) then 
@@ -307,5 +387,7 @@ contains
       minmod = c 
       !
    end function minmod
+   !
+   !----------------------------------------------------------------------------------------------
    !
 end module Hydro

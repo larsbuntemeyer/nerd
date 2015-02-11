@@ -17,22 +17,22 @@ module Grid
    integer,          save :: ie,je,ke
    integer,          save :: ibg,jbg,kbg
    integer,          save :: ieg,jeg,keg
-   double precision, save :: dx,dy,dz 
+   real, save :: dx,dy,dz
    !
    !  The cell coordinates
    !  c: center coordinate of the cell
    !  l: left cell-face coordinate
    !  r: right cell-face coordinate
    !
-   double precision, dimension(:),      allocatable :: xcCoord
-   double precision, dimension(:),      allocatable :: ycCoord
-   double precision, dimension(:),      allocatable :: zcCoord
-   double precision, dimension(:),      allocatable :: xlCoord
-   double precision, dimension(:),      allocatable :: ylCoord
-   double precision, dimension(:),      allocatable :: zlCoord
-   double precision, dimension(:),      allocatable :: xrCoord
-   double precision, dimension(:),      allocatable :: yrCoord
-   double precision, dimension(:),      allocatable :: zrCoord
+   real, dimension(:),      allocatable :: xcCoord
+   real, dimension(:),      allocatable :: ycCoord
+   real, dimension(:),      allocatable :: zcCoord
+   real, dimension(:),      allocatable :: xlCoord
+   real, dimension(:),      allocatable :: ylCoord
+   real, dimension(:),      allocatable :: zlCoord
+   real, dimension(:),      allocatable :: xrCoord
+   real, dimension(:),      allocatable :: yrCoord
+   real, dimension(:),      allocatable :: zrCoord
    !
 contains
 !

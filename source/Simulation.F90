@@ -5,9 +5,9 @@ module Simulation
    !
    ! Here one can add his own runtime-parameters
    !
-   double precision    :: radius
-   double precision    :: rho_left,rho_right
-   double precision    :: vx_left,vx_right
+   real    :: radius
+   real    :: rho_left,rho_right
+   real    :: vx_left,vx_right
    !
 contains
 !
@@ -20,11 +20,11 @@ subroutine Simulation_init_domain
    implicit none
    !
    integer             :: i,j,k 
-   double precision    :: distance
-   double precision    :: xctr,yctr,zctr
-   double precision    :: xsize,ysize,zsize  
-   double precision    :: rho_r,rho_l,vx_r,vx_l 
-   double precision    :: ek,ei,e 
+   real    :: distance
+   real    :: xctr,yctr,zctr
+   real    :: xsize,ysize,zsize
+   real    :: rho_r,rho_l,vx_r,vx_l
+   real    :: ek,ei,e
    !
    rho_r = rho_right
    rho_l = rho_left
