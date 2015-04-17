@@ -29,17 +29,18 @@ subroutine Io_init
    write(*,*) '----- Io_init done ----------------'
    ! 
 end subroutine Io_init
-!
+   !
    subroutine Io_write_to_file
       !
       implicit none
       integer :: i,j,k
       !
-      do i=1,nx+2*nguard
-         do j=1,ny+k2d*2*nguard
-            do k=1,nz+k3d*2*nguard
+      do i=ib,ie
+         do j=jb,je
+            do k=kb,ke
                !
-               write(outdata_unit,'(3I5,3F13.8)') i,j,k,dens(i,j,k),u(i,j,k),pres(i,j,k)
+               !write(outdata_unit,'(3I5,3F13.8)') i,j,k,dens(i,j,k),u(i,j,k),pres(i,j,k)
+               write(outdata_unit,'(4F13.8)') xcCoord(i),dens(i,j,k),u(i,j,k),pres(i,j,k)
                !
             enddo  
          enddo  

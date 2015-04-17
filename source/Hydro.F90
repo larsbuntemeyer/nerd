@@ -40,7 +40,7 @@ contains
       ! the current fluxes:
       ! the flux is defined at the cell interfaces, so we
       ! for an x-grid with nx cells, we have nx+2*nguard+1
-      ! cell interfaces
+      ! cell interfaces...
       !
       real, dimension(nvar,ibg:ieg+1,jbg:jeg+1,kbg:keg+1) :: flux,dq
       real, dimension(nvar,ibg:ieg  ,jbg:jeg  ,kbg:keg  ) :: q
@@ -130,9 +130,9 @@ contains
       !
       ! Compute conserved variables
       !
-      do i=ibg,ieg
+      do k=kbg,keg
          do j=jbg,jeg
-            do k=kbg,keg
+            do i=ibg,ieg
                !
                vtot2 = u(i,j,k)**2+v(i,j,k)**2+w(i,j,k)**2
                rho   = dens(i,j,k)
@@ -148,11 +148,11 @@ contains
          enddo
       enddo 
       !
-      ! Compute jumps conserved variables
+      ! Compute jumps in conserved variables
       !
-      do i=ibg,ieg
+      do k=kbg,keg
          do j=jbg,jeg
-            do k=kbg,keg
+            do i=ibg,ieg
                do ivar=1,nvar
                   !
                   dq(ivar,i,j,k) = q(ivar,i,j,k)-q(ivar,i-1,j,k)
@@ -325,6 +325,53 @@ contains
       interface_flux = flux
       !
    end function interface_flux
+   !
+   !----------------------------------------------------------------------------------------------
+   !
+   real function interface_flux_roe(q1,q2,q3,q4,v_face,dt)
+      !
+      implicit none
+      !
+      real :: q1,q2,q3,q4
+      real :: v_face,dt
+      real :: r,phi,flux,theta
+      !
+      theta = sign(1.e0,v_face)
+      !
+      if(abs(q3-q2).gt.0.e0) then
+         if(v_face.ge.0e0) then
+            r = (q2-q1)/(q3-q2)
+         else 
+            r = (q4-q3)/(q3-q2)
+         endif
+      else
+         r = 0.d0
+      endif
+      !
+      select case(fl)
+         !
+         case('donor-cell')
+            phi = 0.d0
+         case('Lax-Wendroff')
+            phi = 1.d0
+         case('Beam-Warming')
+            phi = r
+         case('Fromm')
+            phi = 0.5e0*(1.e0+r)
+         case('minmod')
+            phi = minmod(1.e0,r)
+         case('superbee')
+            phi = max(0.e0,min(1.e0,2.e0*r),min(2.e0,r))
+         case default
+            phi = 0.e0
+      end select
+      !
+      flux = 0.5d0*v_face*((1.e0+theta)*q2+(1.e0-theta)*q3) +  &
+             0.5d0*abs(v_face)*(1.e0-abs(v_face*dt/dx))*phi*(q3-q2)
+             !
+      interface_flux = flux
+      !
+   end function interface_flux_roe
    !
    !----------------------------------------------------------------------------------------------
    !

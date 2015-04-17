@@ -65,7 +65,7 @@ subroutine Driver_evolve
       current_time = current_time + dt  
       !
       call Hydro_solve(dt) 
-      !call Eos_gamma 
+      call Eos_gamma 
       !
       write(*,'(I5,2D18.4)') step,current_time,dt
       !

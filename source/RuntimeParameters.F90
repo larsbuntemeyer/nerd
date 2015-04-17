@@ -51,7 +51,7 @@ subroutine RuntimeParameters_init
    dtmax = 1.d0
    dtini = 1.d-10
    n_max = 50
-   gamma = 5.d0/3.d0
+   gamma = 7.d0/5.d0
    mu_mol = 1.0
    !
    fl  = 'superbee'

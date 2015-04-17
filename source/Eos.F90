@@ -22,9 +22,9 @@ module Eos
       !
       implicit none
       !
-      do i=1+nguard,nx+nguard+1
-         do j=1+k2d*nguard,ny+k2d*(nguard+1)
-            do k=1+k3d*nguard,nz+k3d*(nguard+1)
+      do k=kb,ke
+         do j=jb,je
+            do i=ib,ie
                !
                pres(i,j,k) = eint(i,j,k)*dens(i,j,k)*(gamma-1.d0)      
                temp(i,j,k) = eint(i,j,k)*mu_mol*(gamma-1.d0)/gas_constant      
