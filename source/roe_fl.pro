@@ -491,7 +491,7 @@ for t=1,timesteps do begin
       endif else begin
          r2(i) = 0.d0
       endelse
-      if(abs(dq3(i)) gt 0.d0) then begin
+      if(abs(a3(i)) gt 0.d0) then begin
          if(l3(i) gt 0.d0) then begin
             r3(i) = a3(i-1)/a3(i) 
          endif else begin
@@ -500,7 +500,7 @@ for t=1,timesteps do begin
       endif else begin
          r3(i) = 0.d0
       endelse
-      if(abs(dq4(i)) gt 0.d0) then begin
+      if(abs(a4(i)) gt 0.d0) then begin
          if(l4(i) gt 0.d0) then begin
             r4(i) = a4(i-1)/a4(i) 
          endif else begin
@@ -509,7 +509,7 @@ for t=1,timesteps do begin
       endif else begin
          r4(i) = 0.d0
       endelse
-      if(abs(dq5(i)) gt 0.d0) then begin
+      if(abs(a5(i)) gt 0.d0) then begin
          if(l5(i) gt 0.d0) then begin
             r5(i) = a5(i-1)/a5(i) 
          endif else begin

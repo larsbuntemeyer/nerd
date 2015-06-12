@@ -3,9 +3,6 @@
 !
 module Hydro
    !
-   use Grid
-   use Database
-   !
    implicit none
    !
    public  :: Hydro_init, Hydro_solve
@@ -30,65 +27,265 @@ contains
    !
    !----------------------------------------------------------------------------------------------
    !
-   subroutine sweep1D(dt,dir)
+   subroutine sweep1D(dt,dx,dir,rho,u,v,w,eint,pres,n,nvar)
+      !
+      use RuntimeParameters
       !
       implicit none
       !
-      real,    intent(in) :: dt
-      integer, intent(in) :: dir
+      real,    intent(in) :: dt,dx
+      integer, intent(in) :: dir,n,nvar
+      real, dimension(n), intent(in)    :: pres 
+      real, dimension(n), intent(inout) :: rho,u,v,w,eint
       !
       ! the current fluxes:
       ! the flux is defined at the cell interfaces, so we
       ! for an x-grid with nx cells, we have nx+2*nguard+1
       ! cell interfaces...
       !
-      real, dimension(nvar,ibg:ieg+1,jbg:jeg+1,kbg:keg+1) :: flux,dq
-      real, dimension(nvar,ibg:ieg  ,jbg:jeg  ,kbg:keg  ) :: q
+      real, dimension(nvar,n) :: flux
+      real, dimension(nvar,n) :: q
+      real, dimension(n)      :: enth
+      ! Roe averages
+      real, dimension(n+1)      :: velx_a,vely_a,velz_a
+      real, dimension(n+1)      :: enth_a,vel_a,cs_a
+      ! average eigenvalues
+      real, dimension(nvar,n+1) :: dq,t,p,r,l,a,K1,K2,K3,K4,K5
+      real, dimension(nvar,n+1) :: fl_left,fl_right,fl_diss,fl_roe
       !
-      real :: rho,ei,ekin,vtot2
+      real :: rho2,rho2m1,ei,ekin,vtot2,dq5a,ener,dtdx
       real :: fx,fy,fz
       !
       integer :: i,j,k,ivar
       !
-      ! Compute conserved variables
+      ! Compute conserved variables and enthalpie
       !
-      do k=kbg,keg
-         do j=jbg,jeg
-            do i=ibg,ieg
-               !
-               vtot2 = u(i,j,k)**2+v(i,j,k)**2+w(i,j,k)**2
-               rho   = dens(i,j,k)
-               ekin  = 0.5d0 * vtot2
-               !
-               q(1,i,j,k) = rho
-               q(2,i,j,k) = rho * u(i,j,k)
-               q(3,i,j,k) = rho * v(i,j,k)
-               q(4,i,j,k) = rho * w(i,j,k)
-               q(5,i,j,k) = rho * (eint(i,j,k) + ekin)
-               !
-            enddo
-         enddo
+      do i=1,n
+         !
+         vtot2 = u(i)**2+v(i)**2+w(i)**2
+         ekin  = 0.5d0 * vtot2
+         !
+         q(1,i) = rho(i)
+         q(2,i) = rho(i) * u(i)
+         q(3,i) = rho(i) * v(i)
+         q(4,i) = rho(i) * w(i)
+         q(5,i) = rho(i) * (eint(i) + ekin)
+         enth(i) = eint(i) + ekin + pres(i)/rho(i) 
+         !
       enddo
       !
       ! Compute jumps in conserved quantities
       !
       do ivar=1,nvar
-        do k=kbg,keg
-          do j=jbg,jeg
-            do i=ibg+1,ieg-1
-              !
-              dq(ivar,i,j,k) = q(ivar,i,j,k) - q(ivar,i-1,j,k)
-              !
-            enddo
-          enddo
+        do i=2,n
+          !
+          dq(ivar,i) = q(ivar,i) - q(ivar,i-1)
+          !
+        enddo
+        dq(ivar,1)   = dq(ivar,2)
+        dq(ivar,n+1) = dq(ivar,n)
+      enddo
+      !
+      ! Compute Roe averages
+      !
+      do i=2,n
+        !
+        rho2m1 = rho(i-1)*rho(i-1)
+        rho2   = rho(i)*rho(i)
+        velx_a(i) = (u(i-1)*rho2m1 + u(i)*rho2) / (rho2m1+rho2)
+        vely_a(i) = (v(i-1)*rho2m1 + v(i)*rho2) / (rho2m1+rho2)
+        velz_a(i) = (w(i-1)*rho2m1 + w(i)*rho2) / (rho2m1+rho2)
+        enth_a(i) = (enth(i-1)*rho2m1 + enth(i)*rho2) / (rho2m1+rho2)
+        vel_a(i) = sqrt(velx_a(i)**2+vely_a(i)**2+velz_a(i)**2)
+        cs_a(i) = sqrt((gamma-1.0)*(enth_a(i)-0.5*vel_a(i)**2))
+        !
+      enddo
+      velx_a(1) = velx_a(2) 
+      vely_a(1) = vely_a(2) 
+      velz_a(1) = velz_a(2) 
+      enth_a(1) = enth_a(2) 
+      vel_a(1)  = vel_a(2) 
+      cs_a(1)   = cs_a(2) 
+      velx_a(n+1) = velx_a(n) 
+      vely_a(n+1) = vely_a(n) 
+      velz_a(n+1) = velz_a(n) 
+      vel_a(n+1)  = vel_a(n) 
+      enth_a(n+1) = enth_a(n) 
+      cs_a(n+1)   = cs_a(n) 
+      !
+      ! Eigenvalues 
+      !
+      do i=1,n+1
+        !
+        ! Eigenvalues 
+        !
+        l(1,i) = velx_a(i) - cs_a(i)
+        l(2,i) = velx_a(i)
+        l(3,i) = vely_a(i)
+        l(4,i) = velz_a(i)
+        l(5,i) = velx_a(i) + cs_a(i)
+        !
+        ! K-Vectors
+        !
+        K1(1,i) = 1.0
+        K1(2,i) = velx_a(i) - cs_a(i)
+        K1(3,i) = vely_a(i)
+        K1(4,i) = velz_a(i)
+        K1(5,i) = enth_a(i) - velx_a(i)*cs_a(i)
+        !
+        K2(1,i) = 1.0
+        K2(2,i) = velx_a(i)
+        K2(3,i) = vely_a(i)
+        K2(4,i) = velz_a(i)
+        K2(5,i) = 0.5*velx_a(i)**2
+        !
+        K3(1,i) = 0.0
+        K3(2,i) = 0.0 
+        K3(3,i) = 1.0 
+        K3(4,i) = 0.0 
+        K3(5,i) = velx_a(i)
+        !
+        K4(1,i) = 0.0
+        K4(2,i) = 0.0 
+        K4(3,i) = 0.0 
+        K4(4,i) = 1.0 
+        K4(5,i) = velz_a(i)
+        !
+        K5(1,i) = 1.0
+        K5(2,i) = velx_a(i) + cs_a(i)
+        K5(3,i) = vely_a(i)
+        K5(4,i) = velz_a(i)
+        K5(5,i) = enth_a(i) + velx_a(i)*cs_a(i)
+        !
+        ! wavestrengts
+        !
+        a(3,i) = dq(3,i) - vely_a(i)*dq(1,i)
+        a(4,i) = dq(4,i) - velz_a(i)*dq(1,i)
+        dq5a = dq(5,i) - (dq(3,i)-vely_a(i)*dq(1,i))*vely_a(i) &
+                           - (dq(4,i)-velz_a(i)*dq(1,i))*velz_a(i)
+        a(2,i) = (gamma-1.0)/(cs_a(i)**2) * (dq(1,i)*(enth_a(i)-velx_a(i)**2) &
+                                                  +velx_a(i)*dq(2,i)-dq5a)
+        a(1,i) = 1.0/(2.0*cs_a(i)) * (dq(1,i)*(velx_a(i)+cs_a(i))-dq(2,i)- &
+                                                           cs_a(i)*a(2,i))
+        a(5,i) = dq(1,i)-(a(1,i)+a(2,i))
+
+      enddo
+      !
+      ! compute left and right fluxes at cell interfaces
+      !
+      do i=2,n
+        fl_left(1,i) = (1.0+ff(velx_a(i)))*q(1,i-1)*u(i-1)
+        fl_left(2,i) = (1.0+ff(velx_a(i)))*(q(2,i-1)*u(i-1)+pres(i-1))
+        fl_left(3,i) = (1.0+ff(velx_a(i)))*q(3,i-1)*u(i-1)
+        fl_left(4,i) = (1.0+ff(velx_a(i)))*q(4,i-1)*u(i-1)
+        fl_left(5,i) = (1.0+ff(velx_a(i)))*(q(5,i-1)+u(i-1)*pres(i-1))
+        fl_right(1,i) = (1.0-ff(velx_a(i)))*q(1,i)*u(i)
+        fl_right(2,i) = (1.0-ff(velx_a(i)))*(q(2,i)*u(i)+pres(i))
+        fl_right(3,i) = (1.0-ff(velx_a(i)))*q(3,i)*u(i)
+        fl_right(4,i) = (1.0-ff(velx_a(i)))*q(4,i)*u(i)
+        fl_right(5,i) = (1.0-ff(velx_a(i)))*(q(5,i)+u(i)*pres(i))
+      enddo
+    !  do ivar=1,nvar
+    !    fl_left(ivar,1) = fl_left(ivar,2) 
+    !    fl_left(ivar,n+1) = fl_left(ivar,n) 
+    !    fl_right(ivar,1) = fl_right(ivar,2) 
+    !    fl_right(ivar,n+1) = fl_right(ivar,n) 
+    !  enddo
+      fl_left(1,1) = (1.0+ff(velx_a(1)))*q(1,1)*u(1)
+      fl_left(2,1) = (1.0+ff(velx_a(1)))*(q(2,1)*u(1)+pres(1))
+      fl_left(3,1) = (1.0+ff(velx_a(1)))*q(3,1)*u(1)
+      fl_left(4,1) = (1.0+ff(velx_a(1)))*q(4,1)*u(1)
+      fl_left(5,1) = (1.0+ff(velx_a(1)))*(q(5,1)+u(1)*pres(1))
+      fl_left(1,n+1) = (1.0+ff(velx_a(n)))*q(1,n)*u(n)
+      fl_left(2,n+1) = (1.0+ff(velx_a(n)))*(q(2,n)*u(n)+pres(n))
+      fl_left(3,n+1) = (1.0+ff(velx_a(n)))*q(3,n)*u(n)
+      fl_left(4,n+1) = (1.0+ff(velx_a(n)))*q(4,n)*u(n)
+      fl_left(5,n+1) = (1.0+ff(velx_a(n)))*(q(5,n)+u(n)*pres(n))
+      fl_right(1,1) = (1.0-ff(velx_a(1)))*q(1,1)*u(1)
+      fl_right(2,1) = (1.0-ff(velx_a(1)))*(q(2,1)*u(1)+pres(1))
+      fl_right(3,1) = (1.0-ff(velx_a(1)))*q(3,1)*u(1)
+      fl_right(4,1) = (1.0-ff(velx_a(1)))*q(4,1)*u(1)
+      fl_right(5,1) = (1.0-ff(velx_a(1)))*(q(5,1)+u(1)*pres(1))
+      fl_right(1,n+1) = (1.0-ff(velx_a(n)))*q(1,n)*u(n)
+      fl_right(2,n+1) = (1.0-ff(velx_a(n)))*(q(2,n)*u(n)+pres(n))
+      fl_right(3,n+1) = (1.0-ff(velx_a(n)))*q(3,n)*u(n)
+      fl_right(4,n+1) = (1.0-ff(velx_a(n)))*q(4,n)*u(n)
+      fl_right(5,n+1) = (1.0-ff(velx_a(n)))*(q(5,n)+u(n)*pres(n))
+      !
+      ! compute slopes for the flux limiter
+      !
+      call compute_slope(a,l,n+1,nvar,r)
+      !
+      ! compute flip flop function and flux limiter
+      !
+      do ivar=1,nvar
+        do i=1,n+1
+          ! flip flop
+          t(ivar,i) = sign(1.0,l(ivar,i)) 
+          ! flux limiter
+          p(ivar,i) = phi(fl,r(ivar,i))
         enddo
       enddo
       !
+      ! compute the dissipative flux
+      !
+      dtdx = dt/dx
+      do ivar=1,nvar
+        do i=1,n+1
+          fl_diss(ivar,i) = a(1,i)*l(1,i)*K1(ivar,i)*(t(1,i)+p(1,i)*(l(1,i)*dtdx-t(1,i))) &
+                          + a(2,i)*l(2,i)*K2(ivar,i)*(t(2,i)+p(2,i)*(l(2,i)*dtdx-t(2,i))) &
+                          + a(3,i)*l(3,i)*K3(ivar,i)*(t(3,i)+p(3,i)*(l(3,i)*dtdx-t(3,i))) &
+                          + a(4,i)*l(4,i)*K4(ivar,i)*(t(4,i)+p(4,i)*(l(4,i)*dtdx-t(4,i))) &
+                          + a(5,i)*l(5,i)*K4(ivar,i)*(t(5,i)+p(5,i)*(l(5,i)*dtdx-t(5,i)))
+        enddo
+      enddo
+      !
+      ! compute Roe flux 
+      !
+      do ivar=1,nvar
+        do i=1,n+1
+          fl_roe(ivar,i) = 0.5*(fl_left(ivar,i)+fl_right(ivar,i)) - 0.5*fl_diss(ivar,i)
+        enddo
+      enddo
+      !
+      ! advect
+      !
+      do ivar=1,nvar
+        do i=1,n
+          q(ivar,i) = q(ivar,i) + dtdx*(fl_roe(ivar,i)-fl_roe(ivar,i+1))
+        enddo
+      enddo 
+      !
+      ! Update simple variables
+      !
+      do i=1,n
+         rho(i) = q(1,i)
+         u(i)   = q(2,i) / rho(i)
+         v(i)   = q(3,i) / rho(i)
+         w(i)   = q(4,i) / rho(i)
+         vtot2  = u(i)**2+v(i)**2+w(i)**2
+         ekin   = 0.5d0 * vtot2
+         ener   = q(5,i) / rho(i)
+         eint(i) = ener - ekin
+      enddo
+      !
+      contains
+        !
+        real function ff(x)
+        ! flip flop function
+        implicit none
+        real, intent(in) :: x
+        ff = sign(1.0,x)
+        end function ff
+        !
    end subroutine sweep1D
    !
    !----------------------------------------------------------------------------------------------
    !
    subroutine Hydro_solve(dt)
+      !
+      use Grid, only: ndim
+      use Database
       !
       implicit none
       !
@@ -103,13 +300,17 @@ contains
       endif
       !
       call fill_guardcells
-      call hydro1D(dt)
+      call sweep1D(dt,dx,1,dens,u,v,w,eint,pres,nx+2*nguard,nvar) 
+      !call hydro1D(dt)
       !
    end subroutine Hydro_solve
    !
    !----------------------------------------------------------------------------------------------
    !
    subroutine hydro1D(dt)
+      !
+      use Grid
+      use Database
       !
       implicit none
       !
@@ -244,6 +445,9 @@ contains
    !
    subroutine fill_guardcells
       !
+      use Grid
+      use Database
+      !
       implicit none
       !
       integer :: i,j,k,ivar
@@ -282,6 +486,8 @@ contains
    !----------------------------------------------------------------------------------------------
    !
    real function interface_flux(q1,q2,q3,q4,v_face,dt)
+      !
+      use Grid
       !
       implicit none
       !
@@ -330,6 +536,8 @@ contains
    !
    real function interface_flux_roe(q1,q2,q3,q4,v_face,dt)
       !
+      use Grid
+      !
       implicit none
       !
       real :: q1,q2,q3,q4
@@ -369,7 +577,7 @@ contains
       flux = 0.5d0*v_face*((1.e0+theta)*q2+(1.e0-theta)*q3) +  &
              0.5d0*abs(v_face)*(1.e0-abs(v_face*dt/dx))*phi*(q3-q2)
              !
-      interface_flux = flux
+      interface_flux_roe = flux
       !
    end function interface_flux_roe
    !
@@ -418,6 +626,36 @@ contains
    !
    !----------------------------------------------------------------------------------------------
    !
+   subroutine compute_slope(a,l,n,nvar,r)
+     !
+     implicit none
+     !
+     integer, intent(in) :: n,nvar
+     real, dimension(nvar,n), intent(in)  :: a,l
+     real, dimension(nvar,n), intent(out) :: r
+     !
+     integer :: i,ivar
+     !
+     do ivar=1,nvar
+       do i=2,n-1
+         if(abs(a(ivar,i)) > 0.0) then
+            if(l(ivar,i) > 0.0) then
+              r(ivar,i) = a(ivar,i-1)/a(ivar,i)
+            else
+              r(ivar,i) = a(ivar,i+1)/a(ivar,i)
+            endif
+         else
+            r(ivar,i) = 0.0
+         endif
+       enddo
+       r(ivar,1) = r(ivar,2)
+       r(ivar,n) = r(ivar,n-1)
+     enddo
+     !
+   end subroutine compute_slope
+   !
+   !----------------------------------------------------------------------------------------------
+   !
    subroutine roe_average(q,qa,w,n)
       !
       ! This subroutine computes Roe's average qa
@@ -442,21 +680,21 @@ contains
    !
    !----------------------------------------------------------------------------------------------
    !
-   real function slope_limiter(slope,q1,q2,q3,q4,v)
-      !
-      implicit none
-      !
-      character(80)    :: slope
-      real :: q1,q2,q3,q4
-      real :: v
-      !
-      select case(slope)
-         !
-      end select
-      !
-      slope_limiter = 0.d0
-      !
-   end function slope_limiter
+   !real function slope_limiter(slope,q1,q2,q3,q4,v)
+   !   !
+   !   implicit none
+   !   !
+   !   character(80)    :: slope
+   !   real :: q1,q2,q3,q4
+   !   real :: v
+   !   !
+   !   select case(slope)
+   !      !
+   !   end select
+   !   !
+   !   slope_limiter = 0.d0
+   !   !
+   !end function slope_limiter
    !
    !----------------------------------------------------------------------------------------------
    !

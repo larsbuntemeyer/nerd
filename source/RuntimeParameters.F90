@@ -50,11 +50,11 @@ subroutine RuntimeParameters_init
    dtmin = 1.d-10
    dtmax = 1.d0
    dtini = 1.d-10
-   n_max = 50
+   n_max = 10
    gamma = 7.d0/5.d0
    mu_mol = 1.0
    !
-   fl  = 'superbee'
+   fl  = 'donor-cell'
    !
    write(*,*) '----- Runtime_parameters_init done-'
    !

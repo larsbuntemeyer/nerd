@@ -10,7 +10,8 @@ SOURCE  = ../source
 INCLUDE = ../include
 
 # compiler flags
-CFLAGS  = #-check all
+#CFLAGS  = -check all
+CFLAGS = -fbounds-check -fcheck-array-temporaries -ffpe-trap=invalid,zero,overflow -Wall -Wextra
 
 # linker flags
 LFLAGS  =

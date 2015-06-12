@@ -23,17 +23,21 @@ subroutine Simulation_init_domain
    real    :: distance
    real    :: xctr,yctr,zctr
    real    :: xsize,ysize,zsize
-   real    :: rho_r,rho_l,vx_r,vx_l
+   real    :: rho_r,rho_l,vx_r,vx_l,eint_l,eint_r,pres_r,pres_l
    real    :: ek,ei,e
    !
    rho_r = rho_right
    rho_l = rho_left
    vx_l  = vx_left
    vx_r  = vx_right
-   rho_r = 1.d-1
-   rho_l = 1.d0
-   vx_l  = 1.d-1
-   vx_r  = 1.d-1
+   rho_r = 0.125
+   rho_l = 1.0
+   vx_l  = 0.75
+   vx_r  = 0.0
+   pres_l = 1.0
+   pres_r = 0.1 
+   eint_l = pres_l/(rho_l*(gamma-1.0))
+   eint_r = pres_r/(rho_r*(gamma-1.0))
    !
    xctr  = 0.5d0*(xmax-xmin)
    yctr  = 0.5d0*(ymax-ymin)
@@ -63,15 +67,15 @@ subroutine Simulation_init_domain
             if(xcCoord(i) < xctr) then
               dens(i,j,k) = rho_l
               u(i,j,k) = vx_l
+              eint(i,j,k) = eint_l
             else
               dens(i,j,k) = rho_r
               u(i,j,k) = vx_r
+              eint(i,j,k) = eint_r
             endif
             !
             ek = 0.5d0*u(i,j,k)**2
-            e = 1.0 + ek
-            ener(i,j,k) = e
-            eint(i,j,k) = e - ek
+            ener(i,j,k) = eint(i,j,k) + ek
             !
          enddo
       enddo
