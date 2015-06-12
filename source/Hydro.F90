@@ -8,7 +8,7 @@ module Hydro
    public  :: Hydro_init, Hydro_solve
    !
    private :: hydro1D, sweep1D, fill_guardcells, minmod, &
-              interface_flux
+              interface_flux, cfl_timestep
    !
 contains
    !
@@ -33,7 +33,8 @@ contains
       !
       implicit none
       !
-      real,    intent(in) :: dt,dx
+      real,    intent(in) :: dx
+      real,    intent(inout) :: dt
       integer, intent(in) :: dir,n,nvar
       real, dimension(n), intent(in)    :: pres 
       real, dimension(n), intent(inout) :: rho,u,v,w,eint
@@ -63,14 +64,15 @@ contains
       do i=1,n
          !
          vtot2 = u(i)**2+v(i)**2+w(i)**2
-         ekin  = 0.5d0 * vtot2
+         ekin  = 0.5 * vtot2
          !
          q(1,i) = rho(i)
          q(2,i) = rho(i) * u(i)
-         q(3,i) = rho(i) * v(i)
-         q(4,i) = rho(i) * w(i)
+         q(3,i) = 0.0!rho(i) * v(i)
+         q(4,i) = 0.0!rho(i) * w(i)
          q(5,i) = rho(i) * (eint(i) + ekin)
          enth(i) = eint(i) + ekin + pres(i)/rho(i) 
+         !print*,i,eint(i),ekin,pres(i),rho(i),u(i),v(i),w(i)
          !
       enddo
       !
@@ -90,13 +92,14 @@ contains
       !
       do i=2,n
         !
-        rho2m1 = rho(i-1)*rho(i-1)
-        rho2   = rho(i)*rho(i)
+        rho2m1 = sqrt(rho(i-1))
+        rho2   = sqrt(rho(i))
         velx_a(i) = (u(i-1)*rho2m1 + u(i)*rho2) / (rho2m1+rho2)
         vely_a(i) = (v(i-1)*rho2m1 + v(i)*rho2) / (rho2m1+rho2)
         velz_a(i) = (w(i-1)*rho2m1 + w(i)*rho2) / (rho2m1+rho2)
         enth_a(i) = (enth(i-1)*rho2m1 + enth(i)*rho2) / (rho2m1+rho2)
         vel_a(i) = sqrt(velx_a(i)**2+vely_a(i)**2+velz_a(i)**2)
+        print*,i,velx_a(i),((gamma-1.0)*(enth_a(i)-0.5*velx_a(i)**2))
         cs_a(i) = sqrt((gamma-1.0)*(enth_a(i)-0.5*vel_a(i)**2))
         !
       enddo
@@ -121,8 +124,8 @@ contains
         !
         l(1,i) = velx_a(i) - cs_a(i)
         l(2,i) = velx_a(i)
-        l(3,i) = vely_a(i)
-        l(4,i) = velz_a(i)
+        l(3,i) = velx_a(i)
+        l(4,i) = velx_a(i)
         l(5,i) = velx_a(i) + cs_a(i)
         !
         ! K-Vectors
@@ -171,19 +174,33 @@ contains
 
       enddo
       !
+      ! timestep
+      !
+      dt = cfl_timestep(n+1,nvar,l,dx)
+      !
       ! compute left and right fluxes at cell interfaces
       !
       do i=2,n
-        fl_left(1,i) = (1.0+ff(velx_a(i)))*q(1,i-1)*u(i-1)
-        fl_left(2,i) = (1.0+ff(velx_a(i)))*(q(2,i-1)*u(i-1)+pres(i-1))
-        fl_left(3,i) = (1.0+ff(velx_a(i)))*q(3,i-1)*u(i-1)
-        fl_left(4,i) = (1.0+ff(velx_a(i)))*q(4,i-1)*u(i-1)
-        fl_left(5,i) = (1.0+ff(velx_a(i)))*(q(5,i-1)+u(i-1)*pres(i-1))
-        fl_right(1,i) = (1.0-ff(velx_a(i)))*q(1,i)*u(i)
-        fl_right(2,i) = (1.0-ff(velx_a(i)))*(q(2,i)*u(i)+pres(i))
-        fl_right(3,i) = (1.0-ff(velx_a(i)))*q(3,i)*u(i)
-        fl_right(4,i) = (1.0-ff(velx_a(i)))*q(4,i)*u(i)
-        fl_right(5,i) = (1.0-ff(velx_a(i)))*(q(5,i)+u(i)*pres(i))
+        !fl_left(1,i) = (1.0+ff(velx_a(i)))*q(1,i-1)*u(i-1)
+        !fl_left(2,i) = (1.0+ff(velx_a(i)))*(q(2,i-1)*u(i-1)+pres(i-1))
+        !fl_left(3,i) = (1.0+ff(velx_a(i)))*q(3,i-1)*u(i-1)
+        !fl_left(4,i) = (1.0+ff(velx_a(i)))*q(4,i-1)*u(i-1)
+        !fl_left(5,i) = (1.0+ff(velx_a(i)))*(q(5,i-1)+u(i-1)*pres(i-1))
+        !fl_right(1,i) = (1.0-ff(velx_a(i)))*q(1,i)*u(i)
+        !fl_right(2,i) = (1.0-ff(velx_a(i)))*(q(2,i)*u(i)+pres(i))
+        !fl_right(3,i) = (1.0-ff(velx_a(i)))*q(3,i)*u(i)
+        !fl_right(4,i) = (1.0-ff(velx_a(i)))*q(4,i)*u(i)
+        !fl_right(5,i) = (1.0-ff(velx_a(i)))*(q(5,i)+u(i)*pres(i))
+        fl_left(1,i) = (1.0)*q(1,i-1)*u(i-1)
+        fl_left(2,i) = (1.0)*(q(2,i-1)*u(i-1)+pres(i-1))
+        fl_left(3,i) = (1.0)*q(3,i-1)*u(i-1)
+        fl_left(4,i) = (1.0)*q(4,i-1)*u(i-1)
+        fl_left(5,i) = (1.0)*(q(5,i-1)+u(i-1)*pres(i-1))
+        fl_right(1,i) = (1.0)*q(1,i)*u(i)
+        fl_right(2,i) = (1.0)*(q(2,i)*u(i)+pres(i))
+        fl_right(3,i) = (1.0)*q(3,i)*u(i)
+        fl_right(4,i) = (1.0)*q(4,i)*u(i)
+        fl_right(5,i) = (1.0)*(q(5,i)+u(i)*pres(i))
       enddo
     !  do ivar=1,nvar
     !    fl_left(ivar,1) = fl_left(ivar,2) 
@@ -191,26 +208,46 @@ contains
     !    fl_right(ivar,1) = fl_right(ivar,2) 
     !    fl_right(ivar,n+1) = fl_right(ivar,n) 
     !  enddo
-      fl_left(1,1) = (1.0+ff(velx_a(1)))*q(1,1)*u(1)
-      fl_left(2,1) = (1.0+ff(velx_a(1)))*(q(2,1)*u(1)+pres(1))
-      fl_left(3,1) = (1.0+ff(velx_a(1)))*q(3,1)*u(1)
-      fl_left(4,1) = (1.0+ff(velx_a(1)))*q(4,1)*u(1)
-      fl_left(5,1) = (1.0+ff(velx_a(1)))*(q(5,1)+u(1)*pres(1))
-      fl_left(1,n+1) = (1.0+ff(velx_a(n)))*q(1,n)*u(n)
-      fl_left(2,n+1) = (1.0+ff(velx_a(n)))*(q(2,n)*u(n)+pres(n))
-      fl_left(3,n+1) = (1.0+ff(velx_a(n)))*q(3,n)*u(n)
-      fl_left(4,n+1) = (1.0+ff(velx_a(n)))*q(4,n)*u(n)
-      fl_left(5,n+1) = (1.0+ff(velx_a(n)))*(q(5,n)+u(n)*pres(n))
-      fl_right(1,1) = (1.0-ff(velx_a(1)))*q(1,1)*u(1)
-      fl_right(2,1) = (1.0-ff(velx_a(1)))*(q(2,1)*u(1)+pres(1))
-      fl_right(3,1) = (1.0-ff(velx_a(1)))*q(3,1)*u(1)
-      fl_right(4,1) = (1.0-ff(velx_a(1)))*q(4,1)*u(1)
-      fl_right(5,1) = (1.0-ff(velx_a(1)))*(q(5,1)+u(1)*pres(1))
-      fl_right(1,n+1) = (1.0-ff(velx_a(n)))*q(1,n)*u(n)
-      fl_right(2,n+1) = (1.0-ff(velx_a(n)))*(q(2,n)*u(n)+pres(n))
-      fl_right(3,n+1) = (1.0-ff(velx_a(n)))*q(3,n)*u(n)
-      fl_right(4,n+1) = (1.0-ff(velx_a(n)))*q(4,n)*u(n)
-      fl_right(5,n+1) = (1.0-ff(velx_a(n)))*(q(5,n)+u(n)*pres(n))
+      !fl_left(1,1) = (1.0+ff(velx_a(1)))*q(1,1)*u(1)
+      !fl_left(2,1) = (1.0+ff(velx_a(1)))*(q(2,1)*u(1)+pres(1))
+      !fl_left(3,1) = (1.0+ff(velx_a(1)))*q(3,1)*u(1)
+      !fl_left(4,1) = (1.0+ff(velx_a(1)))*q(4,1)*u(1)
+      !fl_left(5,1) = (1.0+ff(velx_a(1)))*(q(5,1)+u(1)*pres(1))
+      !fl_left(1,n+1) = (1.0+ff(velx_a(n)))*q(1,n)*u(n)
+      !fl_left(2,n+1) = (1.0+ff(velx_a(n)))*(q(2,n)*u(n)+pres(n))
+      !fl_left(3,n+1) = (1.0+ff(velx_a(n)))*q(3,n)*u(n)
+      !fl_left(4,n+1) = (1.0+ff(velx_a(n)))*q(4,n)*u(n)
+      !fl_left(5,n+1) = (1.0+ff(velx_a(n)))*(q(5,n)+u(n)*pres(n))
+      !fl_right(1,1) = (1.0-ff(velx_a(1)))*q(1,1)*u(1)
+      !fl_right(2,1) = (1.0-ff(velx_a(1)))*(q(2,1)*u(1)+pres(1))
+      !fl_right(3,1) = (1.0-ff(velx_a(1)))*q(3,1)*u(1)
+      !fl_right(4,1) = (1.0-ff(velx_a(1)))*q(4,1)*u(1)
+      !fl_right(5,1) = (1.0-ff(velx_a(1)))*(q(5,1)+u(1)*pres(1))
+      !fl_right(1,n+1) = (1.0-ff(velx_a(n)))*q(1,n)*u(n)
+      !fl_right(2,n+1) = (1.0-ff(velx_a(n)))*(q(2,n)*u(n)+pres(n))
+      !fl_right(3,n+1) = (1.0-ff(velx_a(n)))*q(3,n)*u(n)
+      !fl_right(4,n+1) = (1.0-ff(velx_a(n)))*q(4,n)*u(n)
+      !fl_right(5,n+1) = (1.0-ff(velx_a(n)))*(q(5,n)+u(n)*pres(n))
+      fl_left(1,1) = (1.0)*q(1,1)*u(1)
+      fl_left(2,1) = (1.0)*(q(2,1)*u(1)+pres(1))
+      fl_left(3,1) = (1.0)*q(3,1)*u(1)
+      fl_left(4,1) = (1.0)*q(4,1)*u(1)
+      fl_left(5,1) = (1.0)*(q(5,1)+u(1)*pres(1))
+      fl_left(1,n+1) = (1.0)*q(1,n)*u(n)
+      fl_left(2,n+1) = (1.0)*(q(2,n)*u(n)+pres(n))
+      fl_left(3,n+1) = (1.0)*q(3,n)*u(n)
+      fl_left(4,n+1) = (1.0)*q(4,n)*u(n)
+      fl_left(5,n+1) = (1.0)*(q(5,n)+u(n)*pres(n))
+      fl_right(1,1) = (1.0)*q(1,1)*u(1)
+      fl_right(2,1) = (1.0)*(q(2,1)*u(1)+pres(1))
+      fl_right(3,1) = (1.0)*q(3,1)*u(1)
+      fl_right(4,1) = (1.0)*q(4,1)*u(1)
+      fl_right(5,1) = (1.0)*(q(5,1)+u(1)*pres(1))
+      fl_right(1,n+1) = (1.0)*q(1,n)*u(n)
+      fl_right(2,n+1) = (1.0)*(q(2,n)*u(n)+pres(n))
+      fl_right(3,n+1) = (1.0)*q(3,n)*u(n)
+      fl_right(4,n+1) = (1.0)*q(4,n)*u(n)
+      fl_right(5,n+1) = (1.0)*(q(5,n)+u(n)*pres(n))
       !
       ! compute slopes for the flux limiter
       !
@@ -260,9 +297,9 @@ contains
       !
       do i=1,n
          rho(i) = q(1,i)
-         u(i)   = q(2,i) / rho(i)
-         v(i)   = q(3,i) / rho(i)
-         w(i)   = q(4,i) / rho(i)
+         u(i)   = q(2,i) / q(1,i)
+         v(i)   = 0.0!q(3,i) / q(1,i)
+         w(i)   = 0.0!q(4,i) / q(1,i)
          vtot2  = u(i)**2+v(i)**2+w(i)**2
          ekin   = 0.5d0 * vtot2
          ener   = q(5,i) / rho(i)
@@ -289,7 +326,7 @@ contains
       !
       implicit none
       !
-      real, intent(in) :: dt
+      real, intent(inout) :: dt
       !
       if(ndim>1) then
          write(*,*) '------------------------'
@@ -455,27 +492,29 @@ contains
       ! Fill guardcells 
       !
       do i=ibg,nguard
-         do j=jbg,jeg
-            do k=jbg,keg
+         do j=jb,je
+            do k=jb,ke
                !
                dens(i,j,k) = dens(ib,j,k)
+               pres(i,j,k) = pres(ib,j,k)
                eint(i,j,k) = eint(ib,j,k)
                u(i,j,k) = u(ib,j,k)
-               v(i,j,k) = u(ib,j,k)
-               w(i,j,k) = u(ib,j,k)
+              ! v(i,j,k) = u(ib,j,k)
+              ! w(i,j,k) = u(ib,j,k)
                !
             enddo
          enddo
       enddo 
       do i=ie+1,ieg
-         do j=jbg,jeg
-            do k=kbg,keg
+         do j=jb,je
+            do k=kb,ke
                !
                dens(i,j,k) = dens(ie,j,k)
+               pres(i,j,k) = pres(ie,j,k)
                eint(i,j,k) = eint(ie,j,k)
                u(i,j,k) = u(ie,j,k)
-               v(i,j,k) = u(ie,j,k)
-               w(i,j,k) = u(ie,j,k)
+              ! v(i,j,k) = u(ie,j,k)
+              ! w(i,j,k) = u(ie,j,k)
                !
             enddo
          enddo
@@ -695,6 +734,44 @@ contains
    !   slope_limiter = 0.d0
    !   !
    !end function slope_limiter
+   real function cfl_timestep(n,nvar,l,dx)
+   !
+   use RuntimeParameters
+   
+   implicit none
+   !
+   integer, intent(in) :: n,nvar
+   real, intent(in), dimension(nvar,n) :: l
+   real, intent(in)    :: dx
+   !
+   integer :: i,ivar
+   real :: dt,lmax,lmin
+   real, dimension(n) :: dti
+   !
+   lmax = 0.0
+   lmin = 1.e20
+   !
+   do i=1,n
+     lmax = maxval(l(:,i))
+     lmax = minval(l(:,i))
+     if(lmax-lmin > 0.0) then
+       dti(i) = dx/(lmax-lmin)
+     else
+       dti(i) = dtmax
+     endif
+   enddo 
+   !
+   dt = 1.e-3!cfl * minval(dti)
+   !
+   if(dt < dtmin) then
+      write(*,*) 'WARNING: cfl timestep is less than minimum timestep'
+      write(*,*) 'using dtmin'
+      dt = dtmin
+   endif
+   !
+   cfl_timestep = dt
+   !
+   end function cfl_timestep
    !
    !----------------------------------------------------------------------------------------------
    !

@@ -60,9 +60,9 @@ subroutine Driver_evolve
    !
    do step=1,n_max
       !
-      dt = get_cfl_timestep()
+      !dt = get_cfl_timestep()
       !
-      current_time = current_time + dt  
+      !current_time = current_time + dt  
       !
       call Eos_gamma 
       call Hydro_solve(dt) 
