@@ -26,9 +26,6 @@ subroutine Driver_init
    implicit none
    !
    write(*,*) '----- Driver_init_nerd-------------'
-   write(*,*) 'driver parameters:'
-   write(*,*) 'n_max:', n_max
-   write(*,*) 't_max:', t_max
    !
    call RuntimeParameters_init
    call Grid_init
@@ -37,6 +34,10 @@ subroutine Driver_init
    call Io_init
    call Simulation_init_domain
    call Eos_gamma 
+   !
+   write(*,*) 'driver parameters:'
+   write(*,*) 'n_max:', n_max
+   write(*,*) 't_max:', t_max
    !
    write(*,*) '----- Driver_init_nerd done--------'
    !
@@ -60,14 +61,14 @@ subroutine Driver_evolve
    !
    do step=1,n_max
       !
-      !dt = get_cfl_timestep()
-      !
-      !current_time = current_time + dt  
+      current_time = current_time + dt  
       !
       call Eos_gamma 
       call Hydro_solve(dt) 
       !
       write(*,'(I5,2D18.4)') step,current_time,dt
+      !
+      if(current_time>t_max) exit
       !
    enddo
    !

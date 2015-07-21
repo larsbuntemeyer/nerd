@@ -60,6 +60,7 @@ subroutine Grid_init
    ! | 1 | ... | nguard | nguard+1 | ... | ... | ... | nguard+nx | nguard+nx+1 | ... | 2*nguard+nx |
    ! -----------------------------------------------------------------------------------------------
    ! |   guard cells    |             valid cells                |          guard cells            |
+   !                   xmin                                     xmax
    ! 
    !
    ! loop ranges including guardcells
@@ -135,21 +136,21 @@ subroutine Grid_init
             !
             ! The cell center-coordinates
             !
-            xcCoord(i) = xmin - 1.d0*nguard*dx + 0.5d0*dx + (i-1)*dx
-            ycCoord(j) = ymin - 1.d0*nguard*dy + 0.5d0*dy + (j-1)*dy
-            zcCoord(k) = zmin - 1.d0*nguard*dz + 0.5d0*dz + (k-1)*dz
+            xcCoord(i) = xmin - 1.0*nguard*dx + 0.5*dx + (i-1)*dx
+            ycCoord(j) = ymin - 1.0*nguard*dy + 0.5*dy + (j-1)*dy
+            zcCoord(k) = zmin - 1.0*nguard*dz + 0.5*dz + (k-1)*dz
             !
             ! The left cell-face coordinates
             !
-            xlCoord(i) = xmin - 1.d0*nguard*dx + (i-1)*dx
-            ylCoord(j) = ymin - 1.d0*nguard*dy + (j-1)*dy
-            zlCoord(k) = zmin - 1.d0*nguard*dz + (k-1)*dz
+            xlCoord(i) = xmin - 1.0*nguard*dx + (i-1)*dx
+            ylCoord(j) = ymin - 1.0*nguard*dy + (j-1)*dy
+            zlCoord(k) = zmin - 1.0*nguard*dz + (k-1)*dz
             !
             ! The right cell-face coordinates
             !
-            xrCoord(i) = xmin - 1.d0*nguard*dx  + i*dx
-            yrCoord(j) = ymin - 1.d0*nguard*dy + j*dy
-            zrCoord(k) = zmin - 1.d0*nguard*dz + k*dz
+            xrCoord(i) = xmin - 1.0*nguard*dx  + i*dx
+            yrCoord(j) = ymin - 1.0*nguard*dy + j*dy
+            zrCoord(k) = zmin - 1.0*nguard*dz + k*dz
             !
          enddo
       enddo

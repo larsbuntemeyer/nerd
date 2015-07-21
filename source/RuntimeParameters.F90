@@ -39,22 +39,23 @@ subroutine RuntimeParameters_init
    write(*,*) '----- Runtime_parameters_init -----'
    write(*,*) 'initializing runtime parameters'
    !
-   xmin=0.d0
-   ymin=0.d0
-   zmin=0.d0
-   xmax=1.d0
-   ymax=0.d0
-   zmax=0.d0
+   xmin=0.0
+   ymin=0.0
+   zmin=0.0
+   xmax=1.0
+   ymax=0.0
+   zmax=0.0
    !
    cfl = 0.8
    dtmin = 1.d-10
    dtmax = 1.0
-   dtini = 1.d-10
-   n_max = 100
+   t_max = 0.2 
+   dtini = 1.e-4
+   n_max = 1000
    gamma = 7.d0/5.d0
    mu_mol = 1.0
    !
-   fl  = 'donor-cell'
+   fl  = 'superbee'
    !
    write(*,*) '----- Runtime_parameters_init done-'
    !

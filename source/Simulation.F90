@@ -26,22 +26,23 @@ subroutine Simulation_init_domain
    real    :: rho_r,rho_l,vx_r,vx_l,eint_l,eint_r,pres_r,pres_l
    real    :: ek,ei,e
    !
-   rho_r = rho_right
-   rho_l = rho_left
-   vx_l  = vx_left
-   vx_r  = vx_right
-   rho_r = 0.125
-   rho_l = 1.0
-   vx_l  = 0.75
-   vx_r  = 0.0
+   ! Toro Test 1
+   !
+   rho_l  = 1.0
+   rho_r  = 0.125
    pres_l = 1.0
    pres_r = 0.1 
+   vx_l   = 0.75
+   vx_r   = 0.0
+   !
+   ! Make internal energy consistent with pressure and density
+   !
    eint_l = pres_l/(rho_l*(gamma-1.0))
    eint_r = pres_r/(rho_r*(gamma-1.0))
    !
-   xctr  = 0.5d0*(xmax-xmin)
-   yctr  = 0.5d0*(ymax-ymin)
-   zctr  = 0.5d0*(zmax-zmin)
+   xctr  = 0.5*(xmax-xmin)
+   yctr  = 0.5*(ymax-ymin)
+   zctr  = 0.5*(zmax-zmin)
    xsize = (xmax-xmin)
    ysize = (ymax-ymin)
    zsize = (zmax-zmin)
@@ -54,17 +55,17 @@ subroutine Simulation_init_domain
             !
             ! Here one should init the physics 
             !
-            distance = (xcCoord(i) - xctr)**2 
-            if(ndim>2) then 
-               distance = distance + (ycCoord(j) - yctr)**2 
-            endif
-            if(ndim==3) then 
-               distance = distance + (zcCoord(k) - zctr)**2 
-            endif
+            !distance = (xcCoord(i) - xctr)**2 
+            !if(ndim>2) then 
+            !   distance = distance + (ycCoord(j) - yctr)**2 
+            !endif
+            !if(ndim==3) then 
+            !   distance = distance + (zcCoord(k) - zctr)**2 
+            !endif
             !
             !distance = sqrt(distance)
             !
-            if(xcCoord(i) < xctr) then
+            if(xcCoord(i) < 0.3) then
               dens(i,j,k) = rho_l
               u(i,j,k) = vx_l
               eint(i,j,k) = eint_l
@@ -74,7 +75,9 @@ subroutine Simulation_init_domain
               eint(i,j,k) = eint_r
             endif
             !
-            ek = 0.5d0*u(i,j,k)**2
+            v(i,j,k) = 0.0 
+            w(i,j,k) = 0.0 
+            ek = 0.5*u(i,j,k)**2
             ener(i,j,k) = eint(i,j,k) + ek
             !
          enddo

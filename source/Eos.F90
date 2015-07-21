@@ -26,8 +26,8 @@ module Eos
          do j=jb,je
             do i=ib,ie
                !
-               pres(i,j,k) = eint(i,j,k)*dens(i,j,k)*(gamma-1.d0)      
-               temp(i,j,k) = eint(i,j,k)*mu_mol*(gamma-1.d0)/gas_constant      
+               pres(i,j,k) = eint(i,j,k)*dens(i,j,k)*(gamma-1.0)      
+               temp(i,j,k) = eint(i,j,k)*mu_mol*(gamma-1.0)/gas_constant      
                !
             enddo  
          enddo  
