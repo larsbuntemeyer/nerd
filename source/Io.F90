@@ -39,8 +39,8 @@ end subroutine Io_init
          do j=jb,je
             do k=kb,ke
                !
-               !write(outdata_unit,'(3I5,3F13.8)') i,j,k,dens(i,j,k),u(i,j,k),pres(i,j,k)
-               write(outdata_unit,'(4F13.8)') xcCoord(i),dens(i,j,k),u(i,j,k),pres(i,j,k)
+               write(outdata_unit,'(5F18.8)') xcCoord(i),dens(i,j,k), &
+                                              u(i,j,k),pres(i,j,k),eint(i,j,k)
                !
             enddo  
          enddo  

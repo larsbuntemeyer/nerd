@@ -24,16 +24,37 @@ subroutine Simulation_init_domain
    real    :: xctr,yctr,zctr
    real    :: xsize,ysize,zsize
    real    :: rho_r,rho_l,vx_r,vx_l,eint_l,eint_r,pres_r,pres_l
-   real    :: ek,ei,e
+   real    :: ek,ei,e, border
    !
    ! Toro Test 1
    !
+   !rho_l  = 1.0
+   !vx_l   = 0.75
+   !pres_l = 1.0
+   !rho_r  = 0.125
+   !vx_r   = 0.0
+   !pres_r = 0.1 
+   !border = 0.3
+   !!
+   !! Toro Test 2
+   !!
+   !rho_l  = 1.0
+   !vx_l   = -2.0 
+   !pres_l = 0.4
+   !rho_r  = 1.0
+   !vx_r   = 2.0
+   !pres_r = 0.4 
+   !border = 0.3
+   !
+   ! Toro Test 3
+   !
    rho_l  = 1.0
-   rho_r  = 0.125
-   pres_l = 1.0
-   pres_r = 0.1 
-   vx_l   = 0.75
+   vx_l   = 0.0 
+   pres_l = 1000.0
+   rho_r  = 1.0
    vx_r   = 0.0
+   pres_r = 0.01 
+   border = 0.5
    !
    ! Make internal energy consistent with pressure and density
    !
@@ -66,13 +87,13 @@ subroutine Simulation_init_domain
             !
             !distance = sqrt(distance)
             !
-            if(xcCoord(i) < 0.3) then
+            if(xcCoord(i) < border) then
               dens(i,j,k) = rho_l
-              u(i,j,k) = vx_l
+              u(i,j,k)    = vx_l
               eint(i,j,k) = eint_l
             else
               dens(i,j,k) = rho_r
-              u(i,j,k) = vx_r
+              u(i,j,k)    = vx_r
               eint(i,j,k) = eint_r
             endif
             !

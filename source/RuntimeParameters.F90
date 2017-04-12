@@ -49,7 +49,7 @@ subroutine RuntimeParameters_init
    cfl = 0.5
    dtmin = 1.d-10
    dtmax = 1.0
-   t_max = 0.2 
+   t_max = 0.012  
    dtini = 1.e-5
    n_max = 1000
    gamma = 7.d0/5.d0

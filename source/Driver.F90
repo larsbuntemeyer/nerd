@@ -49,27 +49,31 @@ subroutine Driver_evolve
    !
    implicit none
    !
-   integer          :: step
-   real :: current_time
-   real :: dt, vmax
+   integer   :: step
+   real      :: current_time
+   real      :: dt, vmax
    !
    write(*,*) '----- Driver_evolve_nerd ----------'
    !
    !
    current_time = 0.d0
+   step = 0
    dt = dtini
    !
-   do step=1,n_max
+   do while(current_time<t_max)
       !
-      current_time = current_time + dt  
+      write(*,'(I5,4D18.8)') step,current_time,dt, sum(ener(ib:ie,jb:je,kb:ke)), &
+                                                   sum(dx*dens(ib:ie,jb:je,kb:ke))
       !
       call Eos_gamma
       ! 
-      write(*,'(I5,4D18.8)') step,current_time,dt, sum(ener), sum(dens)
+      call Hydro_solve(dt)
       !
-      call Hydro_solve(dt) 
-      !
-      if(current_time>t_max) exit
+      !write(*,'(I5,4D18.8)') step,current_time,dt, sum(ener), sum(dx*dens)
+      ! 
+      current_time = current_time + dt  
+      step         = step+1
+      ! 
       !
    enddo
    !

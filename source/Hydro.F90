@@ -59,6 +59,7 @@ contains
       !
       integer :: i,j,k,ivar
       !
+      ! State Vector
       ! Compute conserved variables and enthalpy (including guard cells)
       !
       do i=ibg,ieg
@@ -66,11 +67,11 @@ contains
          vtot2 = u(i)**2+v(i)**2+w(i)**2
          ekin  = 0.5 * vtot2
          !
-         q(1,i) = rho(i)
-         q(2,i) = rho(i) * u(i)
-         q(3,i) = rho(i) * v(i)
-         q(4,i) = rho(i) * w(i)
-         q(5,i) = rho(i) * (eint(i) + ekin)
+         q(1,i)  = rho(i)
+         q(2,i)  = rho(i) * u(i)
+         q(3,i)  = rho(i) * v(i)
+         q(4,i)  = rho(i) * w(i)
+         q(5,i)  = rho(i) * (eint(i) + ekin)
          enth(i) = eint(i) + ekin + pres(i)/rho(i) 
          !
       enddo
@@ -100,9 +101,9 @@ contains
         velz_a(i) = (w(i-1)*rho2m1 + w(i)*rho2) / (rho2m1+rho2)
         enth_a(i) = (enth(i-1)*rho2m1 + enth(i)*rho2) / (rho2m1+rho2)
         vel_a(i) = sqrt(velx_a(i)**2+vely_a(i)**2+velz_a(i)**2)
-        !cs_a(i) = sqrt((gamma-1.0)*(enth_a(i)-0.5*vel_a(i)**2))
+        cs_a(i) = sqrt((gamma-1.0)*(enth_a(i)-0.5*vel_a(i)**2))
         !cs_a(i) = (gamma-1.0)*sqrt(enth_a(i)-0.5*vel_a(i)**2)
-        cs_a(i) = sqrt(gamma*pres_a/rho_a) 
+        !cs_a(i) = sqrt(gamma*pres_a/rho_a) 
         !
       enddo
       !
@@ -429,7 +430,7 @@ contains
                dens(i,j,k) = dens(ib,j,k)
                pres(i,j,k) = pres(ib,j,k)
                eint(i,j,k) = eint(ib,j,k)
-               u(i,j,k) = u(ib,j,k)
+               u(i,j,k)    = u(ib,j,k)
               ! v(i,j,k) = u(ib,j,k)
               ! w(i,j,k) = u(ib,j,k)
                !
@@ -443,7 +444,7 @@ contains
                dens(i,j,k) = dens(ie,j,k)
                pres(i,j,k) = pres(ie,j,k)
                eint(i,j,k) = eint(ie,j,k)
-               u(i,j,k) = u(ie,j,k)
+               u(i,j,k)    = u(ie,j,k)
               ! v(i,j,k) = u(ie,j,k)
               ! w(i,j,k) = u(ie,j,k)
                !
