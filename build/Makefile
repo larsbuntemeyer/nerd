@@ -2,16 +2,20 @@
 # makefile for NERD 
 #
 
-#F90 = gfortran
-F90 = ifort
+F90 = gfortran
+#F90 = ifort
 EXE = nerd
 
 SOURCE  = ../source
 INCLUDE = ../include
 
 # compiler flags
-CFLAGS  = -g -check all -fpe0 -warn -traceback -debug extended
-#CFLAGS = -fbounds-check -fcheck-array-temporaries -ffpe-trap=invalid,zero,overflow -Wall -Wextra
+#CFLAGS  = -g -check all -fpe0 -warn -traceback -debug extended
+#CFLAGS = -fbacktrace -fbounds-check -fcheck-array-temporaries -ffpe-trap=invalid,zero,overflow -Wall -Wextra
+CFLAGS = -g -Wall -Wextra -Warray-temporaries -Wconversion -fimplicit-none -fbacktrace \
+         -ffree-line-length-0 -fcheck=all -finit-real=nan -ffpe-trap=zero,overflow,underflow -fdefault-real-8  
+
+
 
 # linker flags
 LFLAGS  =

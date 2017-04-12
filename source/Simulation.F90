@@ -49,7 +49,8 @@ subroutine Simulation_init_domain
    !
    write(*,*) '----- init_domain -----------------'
    !
-   do i=1+nguard,nx+nguard
+   !do i=1+nguard,nx+nguard
+   do i=ib,ie
       do j=1+k2d*nguard,ny+k2d*nguard
          do k=1+k3d*nguard,nz+k3d*nguard
             !

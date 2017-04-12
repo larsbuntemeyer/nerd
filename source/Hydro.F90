@@ -30,6 +30,7 @@ contains
    subroutine sweep1D(dt,dx,dir,rho,u,v,w,eint,pres,n,nvar)
       !
       use RuntimeParameters, only: gamma,fl
+      use Grid, only: ib,ie,ibg,ieg,nx
       !
       implicit none
       !
@@ -46,21 +47,21 @@ contains
       !
       real, dimension(nvar,n) :: q
       real, dimension(n)      :: enth
-      ! Roe averages
+      ! Roe averages at cell interfaces
       real, dimension(n+1)      :: velx_a,vely_a,velz_a
       real, dimension(n+1)      :: enth_a,vel_a,cs_a
-      ! average eigenvalues
+      ! average eigenvalues at cell interfaces
       real, dimension(nvar,n+1) :: dq,t,p,r,l,a,K1,K2,K3,K4,K5
       real, dimension(nvar,n+1) :: fl_left,fl_right,fl_diss,fl_roe
       !
-      real :: rho2,rho2m1,ei,ekin,vtot2,dq5a,ener,dtdx
+      real :: rho2,rho2m1,ei,ekin,vtot2,dq5a,ener,dtdx,pres_a,rho_a
       real :: fx,fy,fz
       !
       integer :: i,j,k,ivar
       !
-      ! Compute conserved variables and enthalpy
+      ! Compute conserved variables and enthalpy (including guard cells)
       !
-      do i=1,n
+      do i=ibg,ieg
          !
          vtot2 = u(i)**2+v(i)**2+w(i)**2
          ekin  = 0.5 * vtot2
@@ -77,45 +78,37 @@ contains
       ! Compute jumps in conserved quantities at cell interfaces
       !
       do ivar=1,nvar
-        do i=2,n
+        do i=ib,ie+1
           !
           dq(ivar,i) = q(ivar,i) - q(ivar,i-1)
           !
         enddo
-        dq(ivar,1)   = dq(ivar,2)
-        dq(ivar,n+1) = dq(ivar,n)
+        !dq(ivar,1)   = 0.0!dq(ivar,2)
+        !dq(ivar,n+1) = 0.0!dq(ivar,n)
       enddo
       !
       ! Compute Roe averages at cell interfaces
       !
-      do i=2,n
+      do i=ib,ie+1
         !
         rho2m1 = sqrt(rho(i-1))
         rho2   = sqrt(rho(i))
+        pres_a = (pres(i-1)*rho2m1 + pres(i)*rho2) / (rho2m1+rho2)
+        rho_a = (rho(i-1)*rho2m1 + rho(i)*rho2) / (rho2m1+rho2)
         velx_a(i) = (u(i-1)*rho2m1 + u(i)*rho2) / (rho2m1+rho2)
         vely_a(i) = (v(i-1)*rho2m1 + v(i)*rho2) / (rho2m1+rho2)
         velz_a(i) = (w(i-1)*rho2m1 + w(i)*rho2) / (rho2m1+rho2)
         enth_a(i) = (enth(i-1)*rho2m1 + enth(i)*rho2) / (rho2m1+rho2)
         vel_a(i) = sqrt(velx_a(i)**2+vely_a(i)**2+velz_a(i)**2)
-        cs_a(i) = sqrt((gamma-1.0)*(enth_a(i)-0.5*vel_a(i)**2))
+        !cs_a(i) = sqrt((gamma-1.0)*(enth_a(i)-0.5*vel_a(i)**2))
+        !cs_a(i) = (gamma-1.0)*sqrt(enth_a(i)-0.5*vel_a(i)**2)
+        cs_a(i) = sqrt(gamma*pres_a/rho_a) 
         !
       enddo
-      velx_a(1) = velx_a(2) 
-      vely_a(1) = vely_a(2) 
-      velz_a(1) = velz_a(2) 
-      enth_a(1) = enth_a(2) 
-      vel_a(1)  = vel_a(2) 
-      cs_a(1)   = cs_a(2) 
-      velx_a(n+1) = velx_a(n) 
-      vely_a(n+1) = vely_a(n) 
-      velz_a(n+1) = velz_a(n) 
-      vel_a(n+1)  = vel_a(n) 
-      enth_a(n+1) = enth_a(n) 
-      cs_a(n+1)   = cs_a(n) 
       !
       ! Eigenvalues 
       !
-      do i=1,n+1
+      do i=ib,ie+1
         !
         ! Eigenvalues 
         !
@@ -161,30 +154,20 @@ contains
         !
         a(3,i) = dq(3,i) - vely_a(i)*dq(1,i)
         a(4,i) = dq(4,i) - velz_a(i)*dq(1,i)
-        dq5a = dq(5,i) - (dq(3,i)-vely_a(i)*dq(1,i))*vely_a(i) - (dq(4,i)-velz_a(i)*dq(1,i))*velz_a(i)
+        dq5a   = dq(5,i) - (dq(3,i)-vely_a(i)*dq(1,i))*vely_a(i) - (dq(4,i)-velz_a(i)*dq(1,i))*velz_a(i)
         a(2,i) = (gamma-1.0)/(cs_a(i)**2) * (dq(1,i)*(enth_a(i)-velx_a(i)**2)+velx_a(i)*dq(2,i)-dq5a)
-        a(1,i) = 0.5*cs_a(i) * (dq(1,i)*(velx_a(i)+cs_a(i))-dq(2,i)-cs_a(i)*a(2,i))
+        a(1,i) = 1.0/(2.0*cs_a(i)) * (dq(1,i)*(velx_a(i)+cs_a(i))-dq(2,i)-cs_a(i)*a(2,i))
         a(5,i) = dq(1,i)-(a(1,i)+a(2,i))
         !
       enddo
       !
       ! timestep
       !
-      dt = cfl_timestep(n+1,nvar,l,dx)
+      dt = cfl_timestep(nx+1,nvar,l(:,ib:ie+1),dx)
       !
       ! compute left and right fluxes at cell interfaces
       !
-      do i=2,n
-        !fl_left(1,i) = (1.0+ff(velx_a(i)))*q(1,i-1)*u(i-1)
-        !fl_left(2,i) = (1.0+ff(velx_a(i)))*(q(2,i-1)*u(i-1)+pres(i-1))
-        !fl_left(3,i) = (1.0+ff(velx_a(i)))*q(3,i-1)*u(i-1)
-        !fl_left(4,i) = (1.0+ff(velx_a(i)))*q(4,i-1)*u(i-1)
-        !fl_left(5,i) = (1.0+ff(velx_a(i)))*(q(5,i-1)+u(i-1)*pres(i-1))
-        !fl_right(1,i) = (1.0-ff(velx_a(i)))*q(1,i)*u(i)
-        !fl_right(2,i) = (1.0-ff(velx_a(i)))*(q(2,i)*u(i)+pres(i))
-        !fl_right(3,i) = (1.0-ff(velx_a(i)))*q(3,i)*u(i)
-        !fl_right(4,i) = (1.0-ff(velx_a(i)))*q(4,i)*u(i)
-        !fl_right(5,i) = (1.0-ff(velx_a(i)))*(q(5,i)+u(i)*pres(i))
+      do i=ib,ie+1
         fl_left(1,i) = (1.0)*q(1,i-1)*u(i-1)
         fl_left(2,i) = (1.0)*(q(2,i-1)*u(i-1)+pres(i-1))
         fl_left(3,i) = (1.0)*q(3,i-1)*u(i-1)
@@ -196,52 +179,6 @@ contains
         fl_right(4,i) = (1.0)*q(4,i)*u(i)
         fl_right(5,i) = (1.0)*(q(5,i)+pres(i))*u(i)
       enddo
-    !  do ivar=1,nvar
-    !    fl_left(ivar,1) = fl_left(ivar,2) 
-    !    fl_left(ivar,n+1) = fl_left(ivar,n) 
-    !    fl_right(ivar,1) = fl_right(ivar,2) 
-    !    fl_right(ivar,n+1) = fl_right(ivar,n) 
-    !  enddo
-      !fl_left(1,1) = (1.0+ff(velx_a(1)))*q(1,1)*u(1)
-      !fl_left(2,1) = (1.0+ff(velx_a(1)))*(q(2,1)*u(1)+pres(1))
-      !fl_left(3,1) = (1.0+ff(velx_a(1)))*q(3,1)*u(1)
-      !fl_left(4,1) = (1.0+ff(velx_a(1)))*q(4,1)*u(1)
-      !fl_left(5,1) = (1.0+ff(velx_a(1)))*(q(5,1)+u(1)*pres(1))
-      !fl_left(1,n+1) = (1.0+ff(velx_a(n)))*q(1,n)*u(n)
-      !fl_left(2,n+1) = (1.0+ff(velx_a(n)))*(q(2,n)*u(n)+pres(n))
-      !fl_left(3,n+1) = (1.0+ff(velx_a(n)))*q(3,n)*u(n)
-      !fl_left(4,n+1) = (1.0+ff(velx_a(n)))*q(4,n)*u(n)
-      !fl_left(5,n+1) = (1.0+ff(velx_a(n)))*(q(5,n)+u(n)*pres(n))
-      !fl_right(1,1) = (1.0-ff(velx_a(1)))*q(1,1)*u(1)
-      !fl_right(2,1) = (1.0-ff(velx_a(1)))*(q(2,1)*u(1)+pres(1))
-      !fl_right(3,1) = (1.0-ff(velx_a(1)))*q(3,1)*u(1)
-      !fl_right(4,1) = (1.0-ff(velx_a(1)))*q(4,1)*u(1)
-      !fl_right(5,1) = (1.0-ff(velx_a(1)))*(q(5,1)+u(1)*pres(1))
-      !fl_right(1,n+1) = (1.0-ff(velx_a(n)))*q(1,n)*u(n)
-      !fl_right(2,n+1) = (1.0-ff(velx_a(n)))*(q(2,n)*u(n)+pres(n))
-      !fl_right(3,n+1) = (1.0-ff(velx_a(n)))*q(3,n)*u(n)
-      !fl_right(4,n+1) = (1.0-ff(velx_a(n)))*q(4,n)*u(n)
-      !fl_right(5,n+1) = (1.0-ff(velx_a(n)))*(q(5,n)+u(n)*pres(n))
-      fl_left(1,1) = (1.0)*q(1,1)*u(1)
-      fl_left(2,1) = (1.0)*(q(2,1)*u(1)+pres(1))
-      fl_left(3,1) = (1.0)*q(3,1)*u(1)
-      fl_left(4,1) = (1.0)*q(4,1)*u(1)
-      fl_left(5,1) = (1.0)*(q(5,1)+pres(1))*u(1)
-      fl_left(1,n+1) = (1.0)*q(1,n)*u(n)
-      fl_left(2,n+1) = (1.0)*(q(2,n)*u(n)+pres(n))
-      fl_left(3,n+1) = (1.0)*q(3,n)*u(n)
-      fl_left(4,n+1) = (1.0)*q(4,n)*u(n)
-      fl_left(5,n+1) = (1.0)*(q(5,n)+pres(n))*u(n)
-      fl_right(1,1) = (1.0)*q(1,1)*u(1)
-      fl_right(2,1) = (1.0)*(q(2,1)*u(1)+pres(1))
-      fl_right(3,1) = (1.0)*q(3,1)*u(1)
-      fl_right(4,1) = (1.0)*q(4,1)*u(1)
-      fl_right(5,1) = (1.0)*(q(5,1)+pres(1))*u(1)
-      fl_right(1,n+1) = (1.0)*q(1,n)*u(n)
-      fl_right(2,n+1) = (1.0)*(q(2,n)*u(n)+pres(n))
-      fl_right(3,n+1) = (1.0)*q(3,n)*u(n)
-      fl_right(4,n+1) = (1.0)*q(4,n)*u(n)
-      fl_right(5,n+1) = (1.0)*(q(5,n)+pres(n))*u(n)
       !
       ! compute slopes for the flux limiter
       !
@@ -250,7 +187,7 @@ contains
       ! compute flip flop function and flux limiter
       !
       do ivar=1,nvar
-        do i=1,n+1
+        do i=ib,ie+1
           ! flip flop
           t(ivar,i) = sign(1.0,l(ivar,i)) 
           ! flux limiter
@@ -260,11 +197,9 @@ contains
       !
       ! compute the dissipative flux
       !
-      !print*,t
-      !
       dtdx = dt/dx
       do ivar=1,nvar
-        do i=1,n+1
+        do i=ib,ie+1
           fl_diss(ivar,i) = a(1,i)*l(1,i)*K1(ivar,i) * (t(1,i)+p(1,i)*(l(1,i)*dtdx-t(1,i))) &
                           + a(2,i)*l(2,i)*K2(ivar,i) * (t(2,i)+p(2,i)*(l(2,i)*dtdx-t(2,i))) &
                           + a(3,i)*l(3,i)*K3(ivar,i) * (t(3,i)+p(3,i)*(l(3,i)*dtdx-t(3,i))) &
@@ -276,7 +211,7 @@ contains
       ! compute Roe flux at cell interfaces 
       !
       do ivar=1,nvar
-        do i=1,n+1
+        do i=ib,ie+1
           fl_roe(ivar,i) = 0.5*(fl_left(ivar,i)+fl_right(ivar,i)) - 0.5*fl_diss(ivar,i)
         enddo
       enddo
@@ -284,14 +219,14 @@ contains
       ! advect in flux conserving form
       !
       do ivar=1,nvar
-        do i=1,n
+        do i=ib,ie+1
           q(ivar,i) = q(ivar,i) + dtdx*(fl_roe(ivar,i)-fl_roe(ivar,i+1))
         enddo
       enddo 
       !
       ! Update simple variables
       !
-      do i=1,n
+      do i=ib,ie
          rho(i) = q(1,i)
          u(i)   = q(2,i) / q(1,i)
          v(i)   = q(3,i) / q(1,i)
@@ -530,34 +465,34 @@ contains
       real :: v_face,dt
       real :: r,phi,flux,theta
       !
-      theta = sign(1.e0,v_face)
+      theta = sign(1.0,v_face)
       !
-      if(abs(q3-q2).gt.0.e0) then
-         if(v_face.ge.0e0) then
+      if(abs(q3-q2).gt.0.0) then
+         if(v_face.ge.0.0) then
             r = (q2-q1)/(q3-q2)
          else 
             r = (q4-q3)/(q3-q2)
          endif
       else
-         r = 0.d0
+         r = 0.0
       endif
       !
       select case(fl)
          !
          case('donor-cell')
-            phi = 0.d0
+            phi = 0.0
          case('Lax-Wendroff')
-            phi = 1.d0
+            phi = 1.0
          case('Beam-Warming')
             phi = r
          case('Fromm')
-            phi = 0.5e0*(1.e0+r)
+            phi = 0.5*(1.0+r)
          case('minmod')
-            phi = minmod(1.e0,r)
+            phi = minmod(1.0,r)
          case('superbee')
-            phi = max(0.e0,min(1.e0,2.e0*r),min(2.e0,r))
+            phi = max(0.0,min(1.0,2.0*r),min(2.0,r))
          case default
-            phi = 0.e0
+            phi = 0.0
       end select
       !
       flux = 0.5d0*v_face*((1.e0+theta)*q2+(1.e0-theta)*q3) +  &
@@ -581,29 +516,29 @@ contains
    select case(fl)
      !
      case('donor-cell')
-       limiter = 0.e0
+       limiter = 0.0
      case('Lax-Wendroff')
-       limiter = 1.e0
+       limiter = 1.0
      case('Beam-Warming')
        limiter = r
      case('Fromm')
-       limiter = 0.5e0*(1.e0+r)
+       limiter = 0.5*(1.0+r)
      case('minmod')
-       limiter = minmod(1.e0,r)
+       limiter = minmod(1.0,r)
      case('superbee')
-       limiter = max(0.e0,min(1.e0,2.e0*r),min(2.e0,r))
+       limiter = max(0.0,min(1.0,2.0*r),min(2.0,r))
      case('hyperbee')
        limiter = 1.0!hyperbee(r)
      case('MC')
-       limiter = max(0.e0,min(0.5e0*(1.e0+r),2.e0,2.e0*r))
+       limiter = max(0.0,min(0.5*(1.0+r),2.0,2.0*r))
      case('van Leer')
-       limiter = (r+abs(r))/(1.e0+abs(r))
+       limiter = (r+abs(r))/(1.0+abs(r))
      case('van Albada 1')
-       limiter = (r*r+r)/(r*r+1.e0)
+       limiter = (r*r+r)/(r*r+1.0)
      case('van Albada 2')
-       limiter = (2.e0*r)/(r*r+1.e0)
+       limiter = (2.0*r)/(r*r+1.0)
      case default
-       limiter = 0.e0
+       limiter = 0.0
    end select
    !
    phi = limiter
@@ -695,11 +630,13 @@ contains
    !
    integer :: i,ivar
    real :: dt,lmax,lmin
-   real, dimension(n) :: dti
+   real, dimension(n-1) :: dti
    !
-   do i=1,n
+   do i=1,n-1
      lmax = maxval(l(:,i))
-     lmin = minval(l(:,i))
+     if(lmax.lt.0.0) lmax=0.0
+     lmin = minval(l(:,i+1))
+     if(lmin.gt.0.0) lmin=0.0
      if(lmax-lmin > 0.0) then
        dti(i) = dx/(lmax-lmin)
      else

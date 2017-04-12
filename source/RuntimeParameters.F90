@@ -28,7 +28,7 @@ module RuntimeParameters
    !
    character(80)           :: fl
    !
-   !
+   integer, parameter :: outflow=1, periodic=2
    !
 contains
 !
@@ -46,11 +46,11 @@ subroutine RuntimeParameters_init
    ymax=0.0
    zmax=0.0
    !
-   cfl = 0.8
+   cfl = 0.5
    dtmin = 1.d-10
    dtmax = 1.0
    t_max = 0.2 
-   dtini = 1.e-4
+   dtini = 1.e-5
    n_max = 1000
    gamma = 7.d0/5.d0
    mu_mol = 1.0

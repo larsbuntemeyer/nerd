@@ -63,10 +63,11 @@ subroutine Driver_evolve
       !
       current_time = current_time + dt  
       !
-      call Eos_gamma 
-      call Hydro_solve(dt) 
+      call Eos_gamma
+      ! 
+      write(*,'(I5,4D18.8)') step,current_time,dt, sum(ener), sum(dens)
       !
-      write(*,'(I5,2D18.4)') step,current_time,dt
+      call Hydro_solve(dt) 
       !
       if(current_time>t_max) exit
       !
