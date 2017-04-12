@@ -35,3 +35,10 @@ set output "sod_shock_pressure.eps"
 plot exact_solution_file using 1:4 w l ls 1, \
      datafile          using 1:4
 
+set ylabel "e"
+set yrange [1.5:4.0]
+set title "Internal Energy"
+set output "sod_shock_eint.eps"
+plot exact_solution_file using 1:5 w l ls 1, \
+     datafile          using 1:5
+
