@@ -36,14 +36,14 @@ end subroutine Io_init
       integer :: i,j,k
       !
       do i=ib,ie
-         do j=jb,je
-            do k=kb,ke
-               !
-               write(outdata_unit,'(5F18.8)') xcCoord(i),dens(i,j,k), &
-                                              u(i,j,k),pres(i,j,k),eint(i,j,k)
-               !
-            enddo  
-         enddo  
+       do j=jb,je
+        do k=kb,ke
+         !
+         write(outdata_unit,'(5F18.8)') xcCoord(i),zcCoord(k),dens(i,j,k), &
+                                        u(i,j,k),w(i,j,k)!,eint(i,j,k)
+         !
+        enddo  
+       enddo  
       enddo  
       !       
    end subroutine Io_write_to_file

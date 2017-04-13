@@ -30,7 +30,7 @@ contains
    subroutine sweep1D(dt,dx,dir,rho,u,v,w,eint,pres,n,nvar)
       !
       use RuntimeParameters, only: gamma,fl
-      use Grid, only: ib,ie,ibg,ieg,nx
+      use Grid, only: ibg,ieg,nx,ib,ie
       !
       implicit none
       !
@@ -45,8 +45,8 @@ contains
       ! for an x-grid with nx cells, we have nx+2*nguard+1
       ! cell interfaces...
       !
-      real, dimension(nvar,n) :: q
-      real, dimension(n)      :: enth
+      real, dimension(nvar,n)   :: q
+      real, dimension(n)        :: enth
       ! Roe averages at cell interfaces
       real, dimension(n+1)      :: velx_a,vely_a,velz_a
       real, dimension(n+1)      :: enth_a,vel_a,cs_a
@@ -60,7 +60,7 @@ contains
       integer :: i,j,k,ivar
       !
       ! State Vector
-      ! Compute conserved variables and enthalpy (including guard cells)
+      ! contains conserved variables and enthalpy (including guard cells)
       !
       do i=ibg,ieg
          !
@@ -101,13 +101,11 @@ contains
         velz_a(i) = (w(i-1)*rho2m1 + w(i)*rho2) / (rho2m1+rho2)
         enth_a(i) = (enth(i-1)*rho2m1 + enth(i)*rho2) / (rho2m1+rho2)
         vel_a(i) = sqrt(velx_a(i)**2+vely_a(i)**2+velz_a(i)**2)
-        cs_a(i) = sqrt((gamma-1.0)*(enth_a(i)-0.5*vel_a(i)**2))
+        !cs_a(i) = sqrt((gamma-1.0)*(enth_a(i)-0.5*vel_a(i)**2))
         !cs_a(i) = (gamma-1.0)*sqrt(enth_a(i)-0.5*vel_a(i)**2)
-        !cs_a(i) = sqrt(gamma*pres_a/rho_a) 
+        cs_a(i) = sqrt(gamma*pres_a/rho_a) 
         !
       enddo
-      !
-      ! Eigenvalues 
       !
       do i=ib,ie+1
         !
@@ -119,7 +117,7 @@ contains
         l(4,i) = velx_a(i)
         l(5,i) = velx_a(i) + cs_a(i)
         !
-        ! K-Vectors
+        ! K-Vectors (Eigenvectors)
         !
         K1(1,i) = 1.0
         K1(2,i) = velx_a(i) - cs_a(i)
@@ -166,19 +164,19 @@ contains
       !
       dt = cfl_timestep(nx+1,nvar,l(:,ib:ie+1),dx)
       !
-      ! compute left and right fluxes at cell interfaces
+      ! compute left and right flux vectors at cell interfaces
       !
       do i=ib,ie+1
-        fl_left(1,i) = (1.0)*q(1,i-1)*u(i-1)
-        fl_left(2,i) = (1.0)*(q(2,i-1)*u(i-1)+pres(i-1))
-        fl_left(3,i) = (1.0)*q(3,i-1)*u(i-1)
-        fl_left(4,i) = (1.0)*q(4,i-1)*u(i-1)
-        fl_left(5,i) = (1.0)*(q(5,i-1)+pres(i-1))*u(i-1)
-        fl_right(1,i) = (1.0)*q(1,i)*u(i)
-        fl_right(2,i) = (1.0)*(q(2,i)*u(i)+pres(i))
-        fl_right(3,i) = (1.0)*q(3,i)*u(i)
-        fl_right(4,i) = (1.0)*q(4,i)*u(i)
-        fl_right(5,i) = (1.0)*(q(5,i)+pres(i))*u(i)
+        fl_left(1,i)  =  q(1,i-1)*u(i-1)
+        fl_left(2,i)  = (q(2,i-1)*u(i-1)+pres(i-1))
+        fl_left(3,i)  =  q(3,i-1)*u(i-1)
+        fl_left(4,i)  =  q(4,i-1)*u(i-1)
+        fl_left(5,i)  = (q(5,i-1)+pres(i-1))*u(i-1)
+        fl_right(1,i) =  q(1,i)*u(i)
+        fl_right(2,i) = (q(2,i)*u(i)+pres(i))
+        fl_right(3,i) =  q(3,i)*u(i)
+        fl_right(4,i) = q(4,i)*u(i)
+        fl_right(5,i) = (q(5,i)+pres(i))*u(i)
       enddo
       !
       ! compute slopes for the flux limiter
@@ -241,6 +239,7 @@ contains
       contains
         !
         ! flip flop function
+        !
         real function ff(x)
         implicit none
         real, intent(in) :: x
@@ -253,12 +252,14 @@ contains
    !
    subroutine Hydro_solve(dt)
       !
-      use Grid, only: ndim
+      use Grid, only: ndim,ib,ie
       use Database
       !
       implicit none
       !
       real, intent(inout) :: dt
+      integer :: i,j,k
+      real,dimension(nvar,nx+1) :: F_l,F_r
       !
       if(ndim>1) then
          write(*,*) '------------------------'
@@ -268,11 +269,60 @@ contains
          stop
       endif
       !
-      call fill_guardcells
-      call sweep1D(dt,dx,1,dens,u,v,w,eint,pres,nx+2*nguard,nvar) 
-      !call hydro1D(dt)
+      !call fill_guardcells
+      !
+      do k=kb,ke
+        do j=jb,je
+          !call compute_xflux(dens(:,j,k),u(:,j,k),v(:,j,k),w(:,j,k),eint(:,j,k),pres(:,j,k), &
+          !                   nx+2*nguard,nvar,ib,ie,F_l,F_r)
+          call fill_guardcells_1D(dens(:,j,k),pres(:,j,k),eint(:,j,k),u(:,j,k),ibg,ieg,ieg,2)
+          call sweep1D(dt,dx,1,dens(:,j,k),u(:,j,k),v(:,j,k),w(:,j,k),eint(:,j,k), &
+                       pres(:,j,k),nx+2*nguard,nvar) 
+        enddo  
+      enddo  
+      !
+      !call fill_guardcells
+      !!
+      do j=jb,je
+        do i=ib,ie
+          call fill_guardcells_1D(dens(i,j,:),pres(i,j,:),eint(i,j,:),w(i,j,:),kbg,keg,keg,1)
+          call sweep1D(dt,dz,1,dens(i,j,:),w(i,j,:),v(i,j,:),u(i,j,:),eint(i,j,:), &
+                       pres(i,j,:),nz+2*nguard,nvar) 
+        enddo  
+      enddo  
       !
    end subroutine Hydro_solve
+   !
+   !----------------------------------------------------------------------------------------------
+   !
+   subroutine compute_xflux(rho,u,v,w,eint,pres,n,nvar,ib,ie,Fl,Fr)
+    implicit none
+    integer, intent(in) :: n,nvar,ib,ie
+    real, intent(in)   , dimension(n+1)    :: rho,u,v,w,eint,pres
+    real, intent(inout), dimension(nvar,n) :: Fl,Fr
+    integer :: i
+    real    :: enth,ekin,vtot2
+    !
+    ! compute left and right flux vectors at cell interfaces
+    !
+    do i=ib,ie+1
+     vtot2    = u(i-1)**2+v(i-1)**2+w(i-1)**2
+     ekin     = 0.5 * vtot2
+     Fl(1,i)  =    rho(i-1)*u(i-1)
+     Fl(2,i)  =    rho(i-1)*u(i-1)*u(i-1) + pres(i-1)
+     Fl(3,i)  =    rho(i-1)*u(i-1)*v(i-1)
+     Fl(4,i)  =    rho(i-1)*u(i-1)*w(i-1)
+     Fl(5,i)  =  ( rho(i-1)*(eint(i-1)+ekin) + pres(i-1) ) * u(i-1)
+     vtot2    = u(i)**2+v(i)**2+w(i)**2
+     ekin     = 0.5 * vtot2
+     Fr(1,i)  =    rho(i)*u(i)
+     Fr(2,i)  =    rho(i)*u(i)*u(i) + pres(i)
+     Fr(3,i)  =    rho(i)*u(i)*v(i)
+     Fr(4,i)  =    rho(i)*u(i)*w(i)
+     Fr(5,i)  =  ( rho(i)*(eint(i)+ekin) + pres(i) ) * u(i)
+    enddo
+    ! 
+   end subroutine compute_xflux
    !
    !----------------------------------------------------------------------------------------------
    !
@@ -412,6 +462,45 @@ contains
    !
    !----------------------------------------------------------------------------------------------
    !
+   subroutine fill_guardcells_1D(dens,pres,eint,u,ib,ie,n,bc)
+     use Grid, only: nguard
+     use RuntimeParameters, only: outflow, periodic
+     implicit none
+     real ,intent(inout), dimension(n) :: dens,pres,eint,u
+     integer, intent(in) :: ib,ie,n 
+     integer, intent(in) :: bc
+     integer :: i,j,k 
+     select case(bc)
+       case(outflow) 
+         do i=ib,ib+nguard-1
+           dens(i) = dens(ib+nguard)
+           pres(i) = pres(ib+nguard)
+           eint(i) = eint(ib+nguard)
+           u(i)    = u(ib+nguard)
+         enddo 
+         do i=ie-nguard+1,ie
+           dens(i) = dens(ie-nguard)
+           pres(i) = pres(ie-nguard)
+           eint(i) = eint(ie-nguard)
+           u(i)    = u(ie-nguard)
+         enddo
+       case(periodic) 
+         do i=ib,ib+nguard-1
+           dens(i) = dens(ie-nguard-i+1)
+           pres(i) = pres(ie-nguard-i+1)
+           eint(i) = eint(ie-nguard-i+1)
+           u(i)    = u(ie-nguard-i+1)
+         enddo 
+         do i=ie-nguard+1,ie
+           dens(i) = dens(i-n+nguard+1)
+           pres(i) = pres(i-n+nguard+1)
+           eint(i) = eint(i-n+nguard+1)
+           u(i)    = u(i-n+nguard+1)
+         enddo
+       case default
+     end select 
+   end subroutine fill_guardcells_1D
+   !
    subroutine fill_guardcells
       !
       use Grid
@@ -421,35 +510,58 @@ contains
       !
       integer :: i,j,k,ivar
       !
-      ! Fill guardcells 
+      ! Fill guardcells x-direction
       !
       do i=ibg,nguard
-         do j=jb,je
-            do k=jb,ke
-               !
-               dens(i,j,k) = dens(ib,j,k)
-               pres(i,j,k) = pres(ib,j,k)
-               eint(i,j,k) = eint(ib,j,k)
-               u(i,j,k)    = u(ib,j,k)
-              ! v(i,j,k) = u(ib,j,k)
-              ! w(i,j,k) = u(ib,j,k)
-               !
-            enddo
-         enddo
+        do j=jb,je
+          do k=kb,ke
+            !
+            dens(i,j,k) = dens(ib,j,k)
+            pres(i,j,k) = pres(ib,j,k)
+            eint(i,j,k) = eint(ib,j,k)
+            u(i,j,k)    = u(ib,j,k)
+            !
+          enddo
+        enddo
       enddo 
       do i=ie+1,ieg
-         do j=jb,je
-            do k=kb,ke
-               !
-               dens(i,j,k) = dens(ie,j,k)
-               pres(i,j,k) = pres(ie,j,k)
-               eint(i,j,k) = eint(ie,j,k)
-               u(i,j,k)    = u(ie,j,k)
-              ! v(i,j,k) = u(ie,j,k)
-              ! w(i,j,k) = u(ie,j,k)
-               !
-            enddo
-         enddo
+        do j=jb,je
+          do k=kb,ke
+            !
+            dens(i,j,k) = dens(ie,j,k)
+            pres(i,j,k) = pres(ie,j,k)
+            eint(i,j,k) = eint(ie,j,k)
+            u(i,j,k)    = u(ie,j,k)
+            !
+          enddo
+        enddo
+      enddo 
+      !
+      ! Fill guardcells z-direction
+      !
+      do k=kbg,nguard
+        do j=jb,je
+          do i=ib,ie
+            !
+            dens(i,j,k) = dens(i,j,ke)
+            pres(i,j,k) = pres(i,j,ke)
+            eint(i,j,k) = eint(i,j,ke)
+            w(i,j,k)    = w(i,j,kb)
+            !
+          enddo
+        enddo
+      enddo 
+      do k=ke+1,keg
+        do j=jb,je
+          do i=ib,ie
+            !
+            dens(i,j,k) = dens(i,j,ke)
+            pres(i,j,k) = pres(i,j,ke)
+            eint(i,j,k) = eint(i,j,ke)
+            w(i,j,k)    = w(ie,j,k)
+            !
+          enddo
+        enddo
       enddo 
       !
    end subroutine fill_guardcells

@@ -29,6 +29,7 @@ module RuntimeParameters
    character(80)           :: fl
    !
    integer, parameter :: outflow=1, periodic=2
+   integer, parameter :: bc = periodic
    !
 contains
 !
@@ -44,18 +45,18 @@ subroutine RuntimeParameters_init
    zmin=0.0
    xmax=1.0
    ymax=0.0
-   zmax=0.0
+   zmax=1.0
    !
-   cfl = 0.5
+   cfl = 0.8
    dtmin = 1.d-10
-   dtmax = 1.0
-   t_max = 0.012  
+   dtmax = 0.1
+   t_max = 2.0
    dtini = 1.e-5
    n_max = 1000
    gamma = 7.d0/5.d0
    mu_mol = 1.0
    !
-   fl  = 'superbee'
+   fl  = 'donor-cell'
    !
    write(*,*) '----- Runtime_parameters_init done-'
    !

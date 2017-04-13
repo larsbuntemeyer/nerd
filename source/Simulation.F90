@@ -25,16 +25,17 @@ subroutine Simulation_init_domain
    real    :: xsize,ysize,zsize
    real    :: rho_r,rho_l,vx_r,vx_l,eint_l,eint_r,pres_r,pres_l
    real    :: ek,ei,e, border
+   integer,parameter :: seed = 86456
    !
    ! Toro Test 1
    !
-   !rho_l  = 1.0
-   !vx_l   = 0.75
-   !pres_l = 1.0
-   !rho_r  = 0.125
-   !vx_r   = 0.0
-   !pres_r = 0.1 
-   !border = 0.3
+   rho_l  = 1.0
+   vx_l   = 0.75
+   pres_l = 1.0
+   rho_r  = 0.125
+   vx_r   = 0.0
+   pres_r = 0.1 
+   border = 0.3
    !!
    !! Toro Test 2
    !!
@@ -48,13 +49,13 @@ subroutine Simulation_init_domain
    !
    ! Toro Test 3
    !
-   rho_l  = 1.0
-   vx_l   = 0.0 
-   pres_l = 1000.0
-   rho_r  = 1.0
-   vx_r   = 0.0
-   pres_r = 0.01 
-   border = 0.5
+   !rho_l  = 1.0
+   !vx_l   = 0.0 
+   !pres_l = 1000.0
+   !rho_r  = 1.0
+   !vx_r   = 0.0
+   !pres_r = 0.01 
+   !border = 0.5
    !
    ! Make internal energy consistent with pressure and density
    !
@@ -72,8 +73,8 @@ subroutine Simulation_init_domain
    !
    !do i=1+nguard,nx+nguard
    do i=ib,ie
-      do j=1+k2d*nguard,ny+k2d*nguard
-         do k=1+k3d*nguard,nz+k3d*nguard
+      do j=jb,je
+         do k=kb,ke
             !
             ! Here one should init the physics 
             !
@@ -87,19 +88,66 @@ subroutine Simulation_init_domain
             !
             !distance = sqrt(distance)
             !
-            if(xcCoord(i) < border) then
-              dens(i,j,k) = rho_l
-              u(i,j,k)    = vx_l
-              eint(i,j,k) = eint_l
+            !--------------------------------------
+            !distance = (xcCoord(i) - xctr)**2 
+            !distance = distance + (zcCoord(k) - zctr)**2
+            !distance = sqrt(distance)
+            !!
+            !if(distance < 0.5*border) then
+            !  dens(i,j,k) = rho_l
+            !  eint(i,j,k) = eint_l
+            !else
+            !  dens(i,j,k) = rho_r
+            !  eint(i,j,k) = eint_r
+            !endif
+            !v(i,j,k) = 0.0 
+            !u(i,j,k) = 0.0 
+            !w(i,j,k) = 0.0 
+            !ek = 0.0 
+            !ener(i,j,k) = eint(i,j,k) + ek
+            !--------------------------------------
+            !if(zcCoord(k) < border) then
+            !  dens(i,j,k) = rho_l
+            !  w(i,j,k)    = vx_l
+            !  eint(i,j,k) = eint_l
+            !else
+            !  dens(i,j,k) = rho_r
+            !  w(i,j,k)    = vx_r
+            !  eint(i,j,k) = eint_r
+            !endif
+            !!
+            !v(i,j,k) = 0.0 
+            !u(i,j,k) = 0.0 
+            !ek = 0.5*w(i,j,k)**2
+            !ener(i,j,k) = eint(i,j,k) + ek
+            !--------------------------------------
+            !if(xcCoord(i) < border) then
+            !  dens(i,j,k) = rho_l
+            !  u(i,j,k)    = vx_l
+            !  eint(i,j,k) = eint_l
+            !else
+            !  dens(i,j,k) = rho_r
+            !  w(i,j,k)    = vx_r
+            !  eint(i,j,k) = eint_r
+            !endif
+            !!
+            !v(i,j,k) = 0.0 
+            !w(i,j,k) = 0.0 
+            !ek = 0.5*u(i,j,k)**2
+            !ener(i,j,k) = eint(i,j,k) + ek
+            !--------------------------------------
+            if(zcCoord(k) > 0.5) then
+              u(i,j,k)    = -0.5 + 1.d-2*(2.0*rand(seed)-1.0)  
+              dens(i,j,k) = 1.0
             else
-              dens(i,j,k) = rho_r
-              u(i,j,k)    = vx_r
-              eint(i,j,k) = eint_r
+              u(i,j,k)    =  0.5 + 1.d-2*(2.0*rand(seed)-1.0)  
+              dens(i,j,k) = 2.0
             endif
-            !
             v(i,j,k) = 0.0 
-            w(i,j,k) = 0.0 
-            ek = 0.5*u(i,j,k)**2
+            w(i,j,k) = 0.0 + 2.d-1*(2.0*rand(seed)-1.0)  
+            pres(i,j,k) = 2.5
+            eint(i,j,k) = pres(i,j,k)/(dens(i,j,k)*(gamma-1.0))
+            ek = 0.5*(u(i,j,k)**2+v(i,j,k)**2+w(i,j,k)**2)
             ener(i,j,k) = eint(i,j,k) + ek
             !
          enddo
