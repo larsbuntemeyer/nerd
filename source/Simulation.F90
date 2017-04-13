@@ -136,15 +136,15 @@ subroutine Simulation_init_domain
             !ek = 0.5*u(i,j,k)**2
             !ener(i,j,k) = eint(i,j,k) + ek
             !--------------------------------------
-            if(zcCoord(k) > 0.5) then
-              u(i,j,k)    = -0.5 + 1.d-2*(2.0*rand(seed)-1.0)  
+            if(zcCoord(k) > 0.7 .or. zcCoord(k) < 0.3) then
+              u(i,j,k)    = -0.5 + 1.d-3*(2.0*rand(seed)-1.0)  
               dens(i,j,k) = 1.0
             else
-              u(i,j,k)    =  0.5 + 1.d-2*(2.0*rand(seed)-1.0)  
+              u(i,j,k)    =  0.5 + 1.d-3*(2.0*rand(seed)-1.0)  
               dens(i,j,k) = 2.0
             endif
             v(i,j,k) = 0.0 
-            w(i,j,k) = 0.0 + 2.d-1*(2.0*rand(seed)-1.0)  
+            w(i,j,k) = 0.0 + 0.1*(2.0*rand(seed)-1.0)  
             pres(i,j,k) = 2.5
             eint(i,j,k) = pres(i,j,k)/(dens(i,j,k)*(gamma-1.0))
             ek = 0.5*(u(i,j,k)**2+v(i,j,k)**2+w(i,j,k)**2)

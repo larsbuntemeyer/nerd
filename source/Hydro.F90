@@ -35,7 +35,7 @@ contains
       implicit none
       !
       real,    intent(in) :: dx
-      real,    intent(inout) :: dt
+      real,    intent(in) :: dt
       integer, intent(in) :: dir,n,nvar
       real, dimension(n), intent(in)    :: pres 
       real, dimension(n), intent(inout) :: rho,u,v,w,eint
@@ -162,7 +162,7 @@ contains
       !
       ! timestep
       !
-      dt = cfl_timestep(nx+1,nvar,l(:,ib:ie+1),dx)
+      !dt = cfl_timestep(nx+1,nvar,l(:,ib:ie+1),dx)
       !
       ! compute left and right flux vectors at cell interfaces
       !
@@ -276,18 +276,26 @@ contains
           !call compute_xflux(dens(:,j,k),u(:,j,k),v(:,j,k),w(:,j,k),eint(:,j,k),pres(:,j,k), &
           !                   nx+2*nguard,nvar,ib,ie,F_l,F_r)
           call fill_guardcells_1D(dens(:,j,k),pres(:,j,k),eint(:,j,k),u(:,j,k),ibg,ieg,ieg,2)
-          call sweep1D(dt,dx,1,dens(:,j,k),u(:,j,k),v(:,j,k),w(:,j,k),eint(:,j,k), &
+          call sweep1D(0.5*dt,dx,1,dens(:,j,k),u(:,j,k),v(:,j,k),w(:,j,k),eint(:,j,k), &
                        pres(:,j,k),nx+2*nguard,nvar) 
         enddo  
       enddo  
       !
-      !call fill_guardcells
-      !!
       do j=jb,je
         do i=ib,ie
-          call fill_guardcells_1D(dens(i,j,:),pres(i,j,:),eint(i,j,:),w(i,j,:),kbg,keg,keg,1)
+          call fill_guardcells_1D(dens(i,j,:),pres(i,j,:),eint(i,j,:),w(i,j,:),kbg,keg,keg,2)
           call sweep1D(dt,dz,1,dens(i,j,:),w(i,j,:),v(i,j,:),u(i,j,:),eint(i,j,:), &
                        pres(i,j,:),nz+2*nguard,nvar) 
+        enddo  
+      enddo
+      ! 
+      do k=kb,ke
+        do j=jb,je
+          !call compute_xflux(dens(:,j,k),u(:,j,k),v(:,j,k),w(:,j,k),eint(:,j,k),pres(:,j,k), &
+          !                   nx+2*nguard,nvar,ib,ie,F_l,F_r)
+          call fill_guardcells_1D(dens(:,j,k),pres(:,j,k),eint(:,j,k),u(:,j,k),ibg,ieg,ieg,2)
+          call sweep1D(0.5*dt,dx,1,dens(:,j,k),u(:,j,k),v(:,j,k),w(:,j,k),eint(:,j,k), &
+                       pres(:,j,k),nx+2*nguard,nvar) 
         enddo  
       enddo  
       !
