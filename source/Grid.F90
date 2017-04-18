@@ -47,9 +47,9 @@ subroutine Grid_init
    ndim    = 1
    nx      = 200
    ny      = 1
-   nz      = 200
+   nz      = 1 
    k2d     = 0
-   k3d     = 1
+   k3d     = 0
    nguard  = 2
    !
    ! Precalculate loop indices as following:

@@ -616,7 +616,7 @@ for t=1,timesteps do begin
    time = time+dt
    if(time gt tmax) then break
  
-   if (NOT ps and NOT wf) then plot,  x, dens, color=0, psym=-6;,yrange=[0.0,dens_left*1.1]
+   if (NOT ps and NOT wf) then plot,  x, dens, psym=-6;,yrange=[0.0,dens_left*1.1]
 
 endfor
 

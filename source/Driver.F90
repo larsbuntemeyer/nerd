@@ -32,7 +32,8 @@ subroutine Driver_init
    call Database_init
    call Hydro_init
    call Io_init
-   call Simulation_init_domain
+   !call Simulation_init_domain
+   call Simulation_init_advect
    call Eos_gamma 
    !
    write(*,*) 'driver parameters:'

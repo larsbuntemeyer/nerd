@@ -271,18 +271,97 @@ contains
       !
       !call fill_guardcells
       !
-      call hydro1D(dt)
-      !do k=kb,ke
-      !  do j=jb,je
-      !    !call compute_xflux(dens(:,j,k),u(:,j,k),v(:,j,k),w(:,j,k),eint(:,j,k),pres(:,j,k), &
-      !    !                   nx+2*nguard,nvar,ib,ie,F_l,F_r)
-      !    call fill_guardcells_1D(dens(:,j,k),pres(:,j,k),eint(:,j,k),u(:,j,k),ibg,ieg,ieg,2)
-      !    call sw
-      !  enddo  
-      !enddo  
+      do k=kb,ke
+        do j=jb,je
+          !call compute_xflux(dens(:,j,k),u(:,j,k),v(:,j,k),w(:,j,k),eint(:,j,k),pres(:,j,k), &
+          !                   nx+2*nguard,nvar,ib,ie,F_l,F_r)
+          call fill_guardcells_1D(dens(:,j,k),pres(:,j,k),eint(:,j,k),u(:,j,k),ibg,ieg,ieg,2)
+          call sweep1D(0.5*dt,dx,1,dens(:,j,k),u(:,j,k),v(:,j,k),w(:,j,k),eint(:,j,k), &
+                       pres(:,j,k),nx+2*nguard,nvar) 
+        enddo  
+      enddo  
       !
+      do j=jb,je
+        do i=ib,ie
+          call fill_guardcells_1D(dens(i,j,:),pres(i,j,:),eint(i,j,:),w(i,j,:),kbg,keg,keg,2)
+          call sweep1D(dt,dz,1,dens(i,j,:),w(i,j,:),u(i,j,:),v(i,j,:),eint(i,j,:), &
+                       pres(i,j,:),nz+2*nguard,nvar) 
+        enddo  
+      enddo
+      ! 
+      do k=kb,ke
+        do j=jb,je
+          !call compute_xflux(dens(:,j,k),u(:,j,k),v(:,j,k),w(:,j,k),eint(:,j,k),pres(:,j,k), &
+          !                   nx+2*nguard,nvar,ib,ie,F_l,F_r)
+          call fill_guardcells_1D(dens(:,j,k),pres(:,j,k),eint(:,j,k),u(:,j,k),ibg,ieg,ieg,2)
+          call sweep1D(0.5*dt,dx,1,dens(:,j,k),u(:,j,k),v(:,j,k),w(:,j,k),eint(:,j,k), &
+                       pres(:,j,k),nx+2*nguard,nvar) 
+        enddo  
+      enddo  
       !
    end subroutine Hydro_solve
+   !
+   !----------------------------------------------------------------------------------------------
+   !
+   subroutine compute_xflux(rho,u,v,w,eint,pres,n,nvar,ib,ie,Fl,Fr)
+    implicit none
+    integer, intent(in) :: n,nvar,ib,ie
+    real, intent(in)   , dimension(n+1)    :: rho,u,v,w,eint,pres
+    real, intent(inout), dimension(nvar,n) :: Fl,Fr
+    integer :: i
+    real    :: enth,ekin,vtot2
+    !
+    ! compute left and right flux vectors at cell interfaces
+    !
+    do i=ib,ie+1
+     vtot2    = u(i-1)**2+v(i-1)**2+w(i-1)**2
+     ekin     = 0.5 * vtot2
+     Fl(1,i)  =    rho(i-1)*u(i-1)
+     Fl(2,i)  =    rho(i-1)*u(i-1)*u(i-1) + pres(i-1)
+     Fl(3,i)  =    rho(i-1)*u(i-1)*v(i-1)
+     Fl(4,i)  =    rho(i-1)*u(i-1)*w(i-1)
+     Fl(5,i)  =  ( rho(i-1)*(eint(i-1)+ekin) + pres(i-1) ) * u(i-1)
+     vtot2    = u(i)**2+v(i)**2+w(i)**2
+     ekin     = 0.5 * vtot2
+     Fr(1,i)  =    rho(i)*u(i)
+     Fr(2,i)  =    rho(i)*u(i)*u(i) + pres(i)
+     Fr(3,i)  =    rho(i)*u(i)*v(i)
+     Fr(4,i)  =    rho(i)*u(i)*w(i)
+     Fr(5,i)  =  ( rho(i)*(eint(i)+ekin) + pres(i) ) * u(i)
+    enddo
+    ! 
+   end subroutine compute_xflux
+   !
+   !----------------------------------------------------------------------------------------------
+   !
+   subroutine compute_zflux(rho,u,v,w,eint,pres,n,nvar,ib,ie,Fl,Fr)
+    implicit none
+    integer, intent(in) :: n,nvar,ib,ie
+    real, intent(in)   , dimension(n+1)    :: rho,u,v,w,eint,pres
+    real, intent(inout), dimension(nvar,n) :: Fl,Fr
+    integer :: i
+    real    :: enth,ekin,vtot2
+    !
+    ! compute left and right flux vectors at cell interfaces
+    !
+    do i=ib,ie+1
+     vtot2    = u(i-1)**2+v(i-1)**2+w(i-1)**2
+     ekin     = 0.5 * vtot2
+     Fl(1,i)  =    rho(i-1)*w(i-1)
+     Fl(2,i)  =    rho(i-1)*w(i-1)*u(i-1)
+     Fl(3,i)  =    rho(i-1)*w(i-1)*v(i-1)
+     Fl(4,i)  =    rho(i-1)*w(i-1)*w(i-1) + pres(i-1)
+     Fl(5,i)  =  ( rho(i-1)*(eint(i-1)+ekin) + pres(i-1) ) * w(i-1)
+     vtot2    = u(i)**2+v(i)**2+w(i)**2
+     ekin     = 0.5 * vtot2
+     Fr(1,i)  =    rho(i)*w(i)
+     Fr(2,i)  =    rho(i)*w(i)*u(i)
+     Fr(3,i)  =    rho(i)*w(i)*v(i)
+     Fr(4,i)  =    rho(i)*w(i)*w(i) + pres(i)
+     Fr(5,i)  =  ( rho(i)*(eint(i)+ekin) + pres(i) ) * w(i)
+    enddo
+    ! 
+   end subroutine compute_zflux
    !
    !----------------------------------------------------------------------------------------------
    !
