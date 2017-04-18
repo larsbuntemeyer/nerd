@@ -21,5 +21,5 @@ set ylabel "z"
 #set ylabel "{/Symbol r}"
 set title "Density"
 set output "sod_shock_density_2D.png"
-splot datafile   using 1:2:3 #with image
+splot datafile   using 1:2:3 
 

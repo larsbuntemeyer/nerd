@@ -50,8 +50,8 @@ subroutine RuntimeParameters_init
    cfl = 0.8
    dtmin = 1.d-10
    dtmax = 0.5
-   t_max = 0.5
-   dtini = 1.e-4
+   t_max = 10.0 !0.1
+   dtini = 1.e-2
    n_max = 10000
    gamma = 7.d0/5.d0
    mu_mol = 1.0

@@ -35,9 +35,9 @@ end subroutine Io_init
       implicit none
       integer :: i,j,k
       !
-      do i=ib,ie
+      do i=ibg,ieg
        do j=jb,je
-        do k=kb,ke
+        do k=kbg,keg
          !
          write(outdata_unit,'(5F18.8)') xcCoord(i),zcCoord(k),dens(i,j,k), &
                                         u(i,j,k),w(i,j,k)!,eint(i,j,k)

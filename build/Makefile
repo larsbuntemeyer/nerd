@@ -13,7 +13,7 @@ INCLUDE = ../include
 #CFLAGS  = -g -check all -fpe0 -warn -traceback -debug extended
 #CFLAGS = -fbacktrace -fbounds-check -fcheck-array-temporaries -ffpe-trap=invalid,zero,overflow -Wall -Wextra
 #CFLAGS = -g -Wall -Wextra -Warray-temporaries -Wconversion -fimplicit-none -fbacktrace \
-#         -ffree-line-length-0 -fcheck=all -finit-real=nan -ffpe-trap=zero,overflow,underflow -fdefault-real-8  
+         -ffree-line-length-0 -fcheck=all -finit-real=nan -ffpe-trap=zero,overflow,underflow -fdefault-real-8  
 #CFLAGS = -g -Wall -Wextra -Warray-temporaries -Wconversion -fimplicit-none -fbacktrace \
 #         -ffree-line-length-0 -fcheck=all -finit-real=nan -fdefault-real-8 
 CFLAGS = -O3

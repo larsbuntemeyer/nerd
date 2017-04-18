@@ -1,5 +1,5 @@
 pro advect,x,xi,q,ui,dt,fluxlim,nghost
-nx     = n_elements(xi)-1
+nx = n_elements(xi)-1
 if n_elements(x) ne nx then stop
 if n_elements(xi) ne nx+1 then stop
 if n_elements(q) ne nx then stop
@@ -10,14 +10,14 @@ if nghost lt 1 then stop
 ;
 r = dblarr(nx+1)
 for i=2,nx-2 do begin
-dq = (q[i]-q[i-1])
-if abs(dq) gt 0.d0 then begin
-if(ui[i] ge 0.d0) then begin
-r[i] = (q[i-1]-q[i-2])/dq
-endif else begin
-r[i] = (q[i+1]-q[i])/dq
-endelse
-endif
+  dq = (q[i]-q[i-1])
+  if abs(dq) gt 0.d0 then begin
+    if(ui[i] ge 0.d0) then begin
+      r[i] = (q[i-1]-q[i-2])/dq
+    endif else begin
+    r[i] = (q[i+1]-q[i])/dq
+    endelse
+  endif
 endfor
 ;
 ; Determine the flux limiter
@@ -142,7 +142,7 @@ for ix=2,nx-3 do begin
 endfor
 ;
 ; Re-impose boundary conditions a last time (not ; strictly necessary)
-; boundary,rho,rhou,periodic=periodic,mirror=mirror ;
+boundary,rho,rhou,periodic=periodic,mirror=mirror ;
 ; Done
 ;
 end
@@ -217,23 +217,29 @@ end
 
 
 
-nx = 100
+nx = 30 
+ny = 30 
 nt = 1000
 x0 = 0.d0
 x1 = 100.d0
-xmid = 0.5 * (x0+x1)
+y0 = 0.d0
+y1 = 100.d0
+xmid = dblarr(2)
+xmid[0] = 0.5 * (x0+x1)
+xmid[1] = 0.5 * (y0+y1)
 dt = 0.25
-cfl = 0.5
+cfl = 0.2
 x = x0 + (x1-x0)*(dindgen(nx)/(nx-1.d0)) 
+y = y0 + (y1-y0)*(dindgen(ny)/(ny-1.d0)) 
 gamma = 7./5.
-rho = dblarr(nx,nt+1)
-rhou = dblarr(nx,nt+1)
-e = dblarr(nx)+1.d0
+rho = dblarr(nx,ny,nt+1)
+rhou = dblarr(nx,ny,nt+1)
+e = dblarr(nx,ny)+1.d0
 time = dblarr(nt+1)
 dg = 0.1*(x1-x0)
-rho[*,0] = 1.d0+0.3*exp(-(x-xmid)^2/dg^2) 
-;rho[*,0] = 1.d0
-;rho[50:nx-1,0] = 0.d0
+for iy=0,ny-1 do begin
+  rho[*,iy,0] = 1.d0+0.3*exp(-((x-xmid[0])^2+(y[iy]-xmid[1])^2)/dg^2)
+endfor
 
 
 ;
@@ -245,26 +251,70 @@ xi[0] = 2*xi[1] - xi[2]
 xi[nx] = 2*xi[nx-1] - xi[nx-2]
 dx = ( xi[1:nx] - xi[0:nx-1] )
 
+yi = dblarr(ny+1)
+yi[1:ny-1] = 0.5 * ( y[1:ny-1] + y[0:ny-2] ) 
+yi[0] = 2*yi[1] - yi[2]
+yi[nx] = 2*yi[ny-1] - yi[ny-2]
+dy = ( yi[1:ny] - yi[0:ny-1] )
+
+;rho[*,0] = 1.d0
+;for ix=0,nx-1 do begin
+;  print, x[ix]
+;  if x[ix] lt xmid then begin
+;     rho[ix,0] = 1.0 
+;  endif else begin
+;     rho[ix,0] = 0.1 
+;  endelse
+;endfor
+;
+;print, rho[*,0]
+;plot,  x, rho[*,0], psym=-6;,yrange=[0.0,dens_left*1.1]
 ;
 ; Now the hydro is done
 ;
-for it=1,nt do begin
-  qrho = rho[*,it-1]
-  qrhou = rhou[*,it-1]
-  cs = sqrt(gamma*(gamma-1)*e)
-  dum = dx/(cs+abs(qrhou/qrho))
-  dt = cfl*min(dum)
-  time[it] = time[it-1]+dt
-  ;;
-  print,'Time step ',it,', Time = ',time[it],', Dt = ',dt ;;
-  hydrostep,x,xi,qrho,qrhou,e,gamma,dt,periodic=1, $
-    fluxlim='superbee',nrvisc=1
-  ;hydroiso_cen,x,xi,qrho,qrhou,e,gamma,dt
-  plot,  x, qrho, psym=-6;,yrange=[0.0,dens_left*1.1]
-  ;;
-  rho[*,it] = qrho
-  rhou[*,it] = qrhou
-endfor
+it = 0
+;for it=1,nt do begin
+while (it lt nt) do begin
+  it = it+1
+  for iy=0,ny-1 do begin
+    qrho = rho[*,iy,it-1]
+    qrhou = rhou[*,iy,it-1]
+    cs = sqrt(gamma*(gamma-1)*e)
+    dum = dx/(cs+abs(qrhou/qrho))
+    dt = cfl*min(dum)
+    time[it] = time[it-1]+dt
+    ;;
+    print,'Time step ',it,', Time = ',time[it],', Dt = ',dt ;;
+    hydrostep,x,xi,qrho,qrhou,e,gamma,0.5*dt,periodic=1, $
+      fluxlim='superbee',nrvisc=1
+    ;hydroiso_cen,x,xi,qrho,qrhou,e,gamma,dt
+    ;plot,  x, qrho, psym=-6;,yrange=[0.0,dens_left*1.1]
+    ;;
+    rho[*,iy,it] = qrho
+    rhou[*,iy,it] = qrhou
+  endfor
+  it = it + 1
+  for ix=0,nx-1 do begin
+    qrho = rho[ix,*,it-1]
+    qrhou = rhou[ix,*,it-1]
+    cs = sqrt(gamma*(gamma-1)*e)
+    dum = dx/(cs+abs(qrhou/qrho))
+    dt = cfl*min(dum)
+    time[it] = time[it-1]+dt
+    ;;
+    ;print,'Time step ',it,', Time = ',time[it],', Dt = ',dt ;;
+    hydrostep,y,yi,qrho,qrhou,e,gamma,dt,periodic=1, $
+      fluxlim='superbee',nrvisc=1
+    ;hydroiso_cen,x,xi,qrho,qrhou,e,gamma,dt
+    ;plot,  x, qrho, psym=-6;,yrange=[0.0,dens_left*1.1]
+    ;;
+    rho[ix,*,it] = qrho
+    rhou[ix,*,it] = qrhou
+  endfor
+  surface,  rho[*,*,it], x,y
+endwhile
+;endfor
 
+;surface,  rho[*,*,0], x, y
 
 END

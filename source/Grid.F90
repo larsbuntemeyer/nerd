@@ -45,11 +45,11 @@ subroutine Grid_init
    integer        :: i,j,k
    !
    ndim    = 1
-   nx      = 200
+   nx      = 50 
    ny      = 1
-   nz      = 1 
+   nz      = 50 
    k2d     = 0
-   k3d     = 0
+   k3d     = 1
    nguard  = 2
    !
    ! Precalculate loop indices as following:
