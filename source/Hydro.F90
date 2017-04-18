@@ -120,32 +120,12 @@ contains
          enddo
       enddo 
       !
-      ! Compute jumps in conserved variables
-      !
-      do k=kb,ke+k3d
-         do j=jb,je+k2d
-            do i=ib,ie+1
-               do ivar=1,nvar
-                  !
-                  dq(ivar,i,j,k) = q(ivar,i,j,k)-q(ivar,i-1,j,k)
-                  !
-               enddo
-            enddo
-         enddo
-      enddo 
-      !
       ! Interpolate velocities at cell interfaces
       !
       do k=kb,ke+k3d
          do j=jb,je+k2d
             do i=ib,ie+1
                !
-               !uf(i,j,k) = 0.5d0*(q(2,i,j,k)   / q(1,i,j,k) +  &
-               !                    q(2,i-1,j,k) / q(1,i-1,j,k)) 
-               !vf(i,j,k) = 0.5d0*(q(3,i,j,k)   / q(1,i,j,k) +  &
-               !                    q(3,i,j-1,k) / q(1,i,j-1,k)) 
-               !wf(i,j,k) = 0.5d0*(q(4,i,j,k)   / q(1,i,j,k) +  &
-               !                    q(4,i,j,k-1) / q(1,i,j,k-1)) 
                uf(i,j,k) = 0.5d0 * (u(i,j,k) + u(i-1,j,k))
                if(k2d==1) vf(i,j,k) = 0.5d0 * (v(i,j,k) + v(i,j-1,k))
                if(k3d==1) wf(i,j,k) = 0.5d0 * (w(i,j,k) + w(i,j,k-1))
@@ -161,33 +141,20 @@ contains
             do i=ib,ie+1
                !
                do ivar=1,nvar
-               xflux(ivar,i,j,k) = interface_flux(q(ivar,i-2,j,k),q(ivar,i-1,j,k), &
-                                              q(ivar,i,j,k),  q(ivar,i+1,j,k), &
-                                              uf(i,j,k),dt)
-               if(k2d==1) then
-               yflux(ivar,i,j,k) = interface_flux(q(ivar,i,j-2,k),q(ivar,i,j-1,k), &
-                                              q(ivar,i,j,k),  q(ivar,i,j+1,k), &
-                                              vf(i,j,k),dt)
-               endif
-               if(k3d==1) then
-               zflux(ivar,i,j,k) = interface_flux(q(ivar,i,j,k-2),q(ivar,i,j,k-1), &
-                                              q(ivar,i,j,k),  q(ivar,i,j,k+1), &
-                                              wf(i,j,k),dt)
-               endif
+                 xflux(ivar,i,j,k) = interface_flux(q(ivar,i-2,j,k),q(ivar,i-1,j,k), &
+                                                q(ivar,i,j,k),  q(ivar,i+1,j,k), &
+                                                uf(i,j,k),dt)
+                 if(k2d==1) then
+                 yflux(ivar,i,j,k) = interface_flux(q(ivar,i,j-2,k),q(ivar,i,j-1,k), &
+                                                q(ivar,i,j,k),  q(ivar,i,j+1,k), &
+                                                vf(i,j,k),dt)
+                 endif
+                 if(k3d==1) then
+                 zflux(ivar,i,j,k) = interface_flux(q(ivar,i,j,k-2),q(ivar,i,j,k-1), &
+                                                q(ivar,i,j,k),  q(ivar,i,j,k+1), &
+                                                wf(i,j,k),dt)
+                 endif
                enddo
-               !if(uf(i,j,k) < 0.d0) then
-               !   flux(1,i,j,k) = uf(i,j,k) *  q(1,i,j,k) 
-               !   flux(2,i,j,k) = uf(i,j,k) *  q(2,i,j,k) + pres(i,j,k)
-               !   flux(3,i,j,k) = uf(i,j,k) *  q(3,i,j,k)
-               !   flux(4,i,j,k) = uf(i,j,k) *  q(4,i,j,k)
-               !   flux(5,i,j,k) = uf(i,j,k) * (q(5,i,j,k) + pres(i,j,k))
-               !else 
-               !   flux(1,i,j,k) = uf(i,j,k) *  q(1,i-1,j,k) 
-               !   flux(2,i,j,k) = uf(i,j,k) *  q(2,i-1,j,k) + pres(i,j,k)
-               !   flux(3,i,j,k) = uf(i,j,k) *  q(3,i-1,j,k)
-               !   flux(4,i,j,k) = uf(i,j,k) *  q(4,i-1,j,k)
-               !   flux(5,i,j,k) = uf(i,j,k) * (q(5,i-1,j,k) + pres(i,j,k))
-               !endif
                !
             enddo
          enddo
@@ -223,7 +190,7 @@ contains
                dens(i,j,k) = rho 
                u(i,j,k)   = q(2,i,j,k) / rho
                v(i,j,k)   = q(3,i,j,k) / rho
-               !w(i,j,k)   = q(4,i,j,k) / rho
+               w(i,j,k)   = q(4,i,j,k) / rho
                vtot2       = u(i,j,k)**2+v(i,j,k)**2+w(i,j,k)**2
                ekin        = 0.5d0 * vtot2
                ener(i,j,k) = q(5,i,j,k) / rho
