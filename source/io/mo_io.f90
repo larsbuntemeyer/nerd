@@ -1,8 +1,8 @@
 !
-module Io
+module mo_io
    !
-   use Grid 
-   use Database
+   use grid 
+   use database
    !
    implicit none
    !
@@ -15,20 +15,6 @@ module Io
    !
    contains 
    !
-subroutine Io_init
-   !
-   implicit none
-   !
-   write(*,*) '----- Io_init ---------------------'
-   !
-   outdata_unit = 2 
-   outdata_base = 'output.dat'
-   open(unit=outdata_unit,file=outdata_base)
-   !
-   write(*,*) 'output data file:',outdata_base
-   write(*,*) '----- Io_init done ----------------'
-   ! 
-end subroutine Io_init
    !
    subroutine Io_write_to_file
       !
@@ -48,5 +34,5 @@ end subroutine Io_init
       !       
    end subroutine Io_write_to_file
    !
-end module Io
+end module mo_io
 !

@@ -1,0 +1,10 @@
+#	This is the configuration file for the driver module of the FLASH code.
+
+REQUIRES grid
+REQUIRES io
+REQUIRES database
+REQUIRES hydro 
+#REQUIRES util/tools
+#REQUIRES util/wrapping
+
+

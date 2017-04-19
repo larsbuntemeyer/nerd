@@ -1,6 +1,6 @@
 #!/bin/sh -f
 
-# script to create the FLASH buildstats routine
+# script to create the preproc buildstats routine
 
 rm -f buildstats.F90
 

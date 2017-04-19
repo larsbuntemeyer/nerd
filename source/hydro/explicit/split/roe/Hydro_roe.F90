@@ -7,14 +7,10 @@ module Hydro
    !
    public  :: Hydro_init, Hydro_solve
    !
-   private :: hydro1D, fill_guardcells, minmod, &
+   private :: hydro1D, sweep1D, fill_guardcells, minmod, &
               interface_flux, cfl_timestep
    !
 contains
-   !
-   subroutine advect
-
-   end subroutine advect
    !
    !----------------------------------------------------------------------------------------------
    !
@@ -31,11 +27,13 @@ contains
    !
    !----------------------------------------------------------------------------------------------
    !
+   !
+   !----------------------------------------------------------------------------------------------
+   !
    subroutine Hydro_solve(dt)
       !
       use Grid, only: ndim,ib,ie
       use Database
-      use RuntimeParameters, only: bc
       !
       implicit none
       !
@@ -53,39 +51,104 @@ contains
       !
       !call fill_guardcells
       !
-      do k=kbg,keg
-        do j=jbg,jeg
-           call fill_guardcells_1D(dens(:,j,k),pres(:,j,k),eint(:,j,k),u(:,j,k),v(:,j,k),w(:,j,k),ibg,ieg,ieg,bc)
+      do k=kb,ke
+        do j=jb,je
+          !call compute_xflux(dens(:,j,k),u(:,j,k),v(:,j,k),w(:,j,k),eint(:,j,k),pres(:,j,k), &
+          !                   nx+2*nguard,nvar,ib,ie,F_l,F_r)
+          call fill_guardcells_1D(dens(:,j,k),pres(:,j,k),eint(:,j,k),u(:,j,k),ibg,ieg,ieg,2)
+          call sweep1D(0.5*dt,dx,1,dens(:,j,k),u(:,j,k),v(:,j,k),w(:,j,k),eint(:,j,k), &
+                       pres(:,j,k),nx+2*nguard,nvar) 
         enddo  
       enddo  
-      !do j=jbg,jeg
-      !  do i=ibg,ieg
-      !     call fill_guardcells_1D(dens(i,j,:),pres(i,j,:),eint(i,j,:),u(i,j,:),v(i,j,:),w(i,j,:),kbg,keg,keg,2)
-      !  enddo  
-      !enddo  
-      call hydro1D(dt)
-      !do k=kb,ke
-      !  do j=jb,je
-      !    !call compute_xflux(dens(:,j,k),u(:,j,k),v(:,j,k),w(:,j,k),eint(:,j,k),pres(:,j,k), &
-      !    !                   nx+2*nguard,nvar,ib,ie,F_l,F_r)
-      !    call fill_guardcells_1D(dens(:,j,k),pres(:,j,k),eint(:,j,k),u(:,j,k),ibg,ieg,ieg,2)
-      !    call sw
-      !  enddo  
-      !enddo  
       !
+      do j=jb,je
+        do i=ib,ie
+          call fill_guardcells_1D(dens(i,j,:),pres(i,j,:),eint(i,j,:),w(i,j,:),kbg,keg,keg,2)
+          call sweep1D(dt,dz,1,dens(i,j,:),w(i,j,:),u(i,j,:),v(i,j,:),eint(i,j,:), &
+                       pres(i,j,:),nz+2*nguard,nvar) 
+        enddo  
+      enddo
+      ! 
+      do k=kb,ke
+        do j=jb,je
+          !call compute_xflux(dens(:,j,k),u(:,j,k),v(:,j,k),w(:,j,k),eint(:,j,k),pres(:,j,k), &
+          !                   nx+2*nguard,nvar,ib,ie,F_l,F_r)
+          call fill_guardcells_1D(dens(:,j,k),pres(:,j,k),eint(:,j,k),u(:,j,k),ibg,ieg,ieg,2)
+          call sweep1D(0.5*dt,dx,1,dens(:,j,k),u(:,j,k),v(:,j,k),w(:,j,k),eint(:,j,k), &
+                       pres(:,j,k),nx+2*nguard,nvar) 
+        enddo  
+      enddo  
       !
    end subroutine Hydro_solve
    !
    !----------------------------------------------------------------------------------------------
    !
+   subroutine compute_xflux(rho,u,v,w,eint,pres,n,nvar,ib,ie,Fl,Fr)
+    implicit none
+    integer, intent(in) :: n,nvar,ib,ie
+    real, intent(in)   , dimension(n+1)    :: rho,u,v,w,eint,pres
+    real, intent(inout), dimension(nvar,n) :: Fl,Fr
+    integer :: i
+    real    :: enth,ekin,vtot2
+    !
+    ! compute left and right flux vectors at cell interfaces
+    !
+    do i=ib,ie+1
+     vtot2    = u(i-1)**2+v(i-1)**2+w(i-1)**2
+     ekin     = 0.5 * vtot2
+     Fl(1,i)  =    rho(i-1)*u(i-1)
+     Fl(2,i)  =    rho(i-1)*u(i-1)*u(i-1) + pres(i-1)
+     Fl(3,i)  =    rho(i-1)*u(i-1)*v(i-1)
+     Fl(4,i)  =    rho(i-1)*u(i-1)*w(i-1)
+     Fl(5,i)  =  ( rho(i-1)*(eint(i-1)+ekin) + pres(i-1) ) * u(i-1)
+     vtot2    = u(i)**2+v(i)**2+w(i)**2
+     ekin     = 0.5 * vtot2
+     Fr(1,i)  =    rho(i)*u(i)
+     Fr(2,i)  =    rho(i)*u(i)*u(i) + pres(i)
+     Fr(3,i)  =    rho(i)*u(i)*v(i)
+     Fr(4,i)  =    rho(i)*u(i)*w(i)
+     Fr(5,i)  =  ( rho(i)*(eint(i)+ekin) + pres(i) ) * u(i)
+    enddo
+    ! 
+   end subroutine compute_xflux
+   !
+   !----------------------------------------------------------------------------------------------
+   !
+   subroutine compute_zflux(rho,u,v,w,eint,pres,n,nvar,ib,ie,Fl,Fr)
+    implicit none
+    integer, intent(in) :: n,nvar,ib,ie
+    real, intent(in)   , dimension(n+1)    :: rho,u,v,w,eint,pres
+    real, intent(inout), dimension(nvar,n) :: Fl,Fr
+    integer :: i
+    real    :: enth,ekin,vtot2
+    !
+    ! compute left and right flux vectors at cell interfaces
+    !
+    do i=ib,ie+1
+     vtot2    = u(i-1)**2+v(i-1)**2+w(i-1)**2
+     ekin     = 0.5 * vtot2
+     Fl(1,i)  =    rho(i-1)*w(i-1)
+     Fl(2,i)  =    rho(i-1)*w(i-1)*u(i-1)
+     Fl(3,i)  =    rho(i-1)*w(i-1)*v(i-1)
+     Fl(4,i)  =    rho(i-1)*w(i-1)*w(i-1) + pres(i-1)
+     Fl(5,i)  =  ( rho(i-1)*(eint(i-1)+ekin) + pres(i-1) ) * w(i-1)
+     vtot2    = u(i)**2+v(i)**2+w(i)**2
+     ekin     = 0.5 * vtot2
+     Fr(1,i)  =    rho(i)*w(i)
+     Fr(2,i)  =    rho(i)*w(i)*u(i)
+     Fr(3,i)  =    rho(i)*w(i)*v(i)
+     Fr(4,i)  =    rho(i)*w(i)*w(i) + pres(i)
+     Fr(5,i)  =  ( rho(i)*(eint(i)+ekin) + pres(i) ) * w(i)
+    enddo
+    ! 
+   end subroutine compute_zflux
+   !
+   !----------------------------------------------------------------------------------------------
+   !
    subroutine hydro1D(dt)
       !
-      use Grid, only: ib,ie,kbg,keg,jbg,jeg,ibg,ieg,jb,je,kb,ke, &
-                      xcCoord,ycCoord,zcCoord,       &
-                      xlCoord,xrCoord,zlCoord,zrCoord, &
-                      ylCoord,yrCoord,k2d,k3d
-      use Database, only: dens,pres,u,v,w,eint,nvar,uf,vf,wf,ener
-      use Eos, only: Eos_gamma
+      use Grid
+      use Database
       !
       implicit none
       !
@@ -96,11 +159,10 @@ contains
       ! for an x-grid with nx cells, we have nx+2*nguard+1
       ! cell interfaces 
       !
-      real, dimension(nvar,ibg:ieg+1,jbg:jeg+1,kbg:keg+1) :: xflux,yflux,zflux
-      real, dimension(nvar,ibg:ieg  ,jbg:jeg  ,kbg:keg  ) :: q
-      real, dimension(nvar,ibg:ieg  ,jbg:jeg  ,kbg:keg  ) :: dq
+      real, dimension(nvar,ibg:ieg+1,jbg:jeg+1,kbg:keg+1) :: flux
+      real, dimension(nvar,ibg:ieg  ,jbg:jeg  ,kbg:keg  ) :: q,dq
       !
-      real :: rho,ei,ekin,vtot2,dp,dx,dy,dz,rhoinv
+      real :: rho,ei,ekin,vtot2
       real :: fx,fy,fz
       !
       integer :: i,j,k,ivar
@@ -125,15 +187,33 @@ contains
          enddo
       enddo 
       !
+      ! Compute jumps in conserved variables
+      !
+      do k=kbg,keg
+         do j=jbg,jeg
+            do i=ibg,ieg
+               do ivar=1,nvar
+                  !
+                  dq(ivar,i,j,k) = q(ivar,i,j,k)-q(ivar,i-1,j,k)
+                  !
+               enddo
+            enddo
+         enddo
+      enddo 
+      !
       ! Interpolate velocities at cell interfaces
       !
-      do k=kb,ke+k3d
+      do i=ib,ie+1
          do j=jb,je+k2d
-            do i=ib,ie+1
+            do k=kb,ke+k3d
                !
+               !uf(i,j,k) = 0.5d0*(q(2,i,j,k)   / q(1,i,j,k) +  &
+               !                    q(2,i-1,j,k) / q(1,i-1,j,k)) 
+               !vf(i,j,k) = 0.5d0*(q(3,i,j,k)   / q(1,i,j,k) +  &
+               !                    q(3,i,j-1,k) / q(1,i,j-1,k)) 
+               !wf(i,j,k) = 0.5d0*(q(4,i,j,k)   / q(1,i,j,k) +  &
+               !                    q(4,i,j,k-1) / q(1,i,j,k-1)) 
                uf(i,j,k) = 0.5d0 * (u(i,j,k) + u(i-1,j,k))
-               if(k2d==1) vf(i,j,k) = 0.5d0 * (v(i,j,k) + v(i,j-1,k))
-               if(k3d==1) wf(i,j,k) = 0.5d0 * (w(i,j,k) + w(i,j,k-1))
                !
             enddo
          enddo
@@ -141,25 +221,26 @@ contains
       !
       ! construct the fluxes at cell interfaces       
       !
-      do k=kb,ke+k3d
+      do i=ib,ie+1
          do j=jb,je+k2d
-            do i=ib,ie+1
+            do k=kb,ke+k3d
                !
-               do ivar=1,nvar
-                 xflux(ivar,i,j,k) = interface_flux(q(ivar,i-2,j,k),q(ivar,i-1,j,k), &
-                                                q(ivar,i,j,k),  q(ivar,i+1,j,k), &
-                                                uf(i,j,k),dt)
-                 if(k2d==1) then
-                 yflux(ivar,i,j,k) = interface_flux(q(ivar,i,j-2,k),q(ivar,i,j-1,k), &
-                                                q(ivar,i,j,k),  q(ivar,i,j+1,k), &
-                                                vf(i,j,k),dt)
-                 endif
-                 if(k3d==1) then
-                 zflux(ivar,i,j,k) = interface_flux(q(ivar,i,j,k-2),q(ivar,i,j,k-1), &
-                                                q(ivar,i,j,k),  q(ivar,i,j,k+1), &
-                                                wf(i,j,k),dt)
-                 endif
-               enddo
+               flux(1,i,j,k) = interface_flux(q(1,i-2,j,k),q(1,i-1,j,k), &
+                                              q(1,i,j,k),  q(1,i+1,j,k), &
+                                              uf(i,j,k),dt)
+             !  if(uf(i,j,k) < 0.d0) then
+             !     flux(1,i,j,k) = uf(i,j,k) *  q(1,i,j,k) 
+             !     flux(2,i,j,k) = uf(i,j,k) *  q(2,i,j,k) + pres(i,j,k)
+             !     flux(3,i,j,k) = uf(i,j,k) *  q(3,i,j,k)
+             !     flux(4,i,j,k) = uf(i,j,k) *  q(4,i,j,k)
+             !     flux(5,i,j,k) = uf(i,j,k) * (q(5,i,j,k) + pres(i,j,k))
+             !  else 
+             !     flux(1,i,j,k) = uf(i,j,k) *  q(1,i-1,j,k) 
+             !     flux(2,i,j,k) = uf(i,j,k) *  q(2,i-1,j,k) + pres(i,j,k)
+             !     flux(3,i,j,k) = uf(i,j,k) *  q(3,i-1,j,k)
+             !     flux(4,i,j,k) = uf(i,j,k) *  q(4,i-1,j,k)
+             !     flux(5,i,j,k) = uf(i,j,k) * (q(5,i-1,j,k) + pres(i,j,k))
+             !  endif
                !
             enddo
          enddo
@@ -172,15 +253,7 @@ contains
             do k=kb,ke
                do ivar=1,nvar
                   q(ivar,i,j,k) = q(ivar,i,j,k) +         &
-                       dt/(xrCoord(i)-xlCoord(i)) * (xflux(ivar,i,j,k) - xflux(ivar,i+1,j,k))
-                  if(k2d==1) then
-                  q(ivar,i,j,k) = q(ivar,i,j,k) +         &
-                       dt/(yrCoord(i)-ylCoord(i)) * (yflux(ivar,i,j,k) - yflux(ivar,i,j+1,k))
-                  endif
-                  if(k3d==1) then
-                  q(ivar,i,j,k) = q(ivar,i,j,k) +         &
-                       dt/(zrCoord(i)-zlCoord(i)) * (zflux(ivar,i,j,k) - zflux(ivar,i,j,k+1))
-                  endif
+                       dt/(xrCoord(i)-xlCoord(i)) * (flux(ivar,i,j,k) - flux(ivar,i+1,j,k))
                enddo
             enddo
          enddo
@@ -193,7 +266,7 @@ contains
             do k=kb,ke
                rho = q(1,i,j,k)
                dens(i,j,k) = rho 
-               u(i,j,k)   = q(2,i,j,k) / rho
+               !u(i,j,k)   = q(2,i,j,k) / rho
                v(i,j,k)   = q(3,i,j,k) / rho
                w(i,j,k)   = q(4,i,j,k) / rho
                vtot2       = u(i,j,k)**2+v(i,j,k)**2+w(i,j,k)**2
@@ -204,46 +277,15 @@ contains
          enddo
       enddo 
       !
-      call Eos_gamma 
-      !
-      ! Now add pressure force
-      !
-      do i=ib,ie
-         do j=jb,je
-            do k=kb,ke
-               rhoinv = 1.0/dens(i,j,k)
-               dp = pres(i+1,j,k) - pres(i-1,j,k)
-               dx = xcCoord(i+1)  - xcCoord(i-1)
-               u(i,j,k)   = u(i,j,k) - dt * dp/dx * rhoinv
-               !if(k2d==1) then 
-               !  dp = pres(i,j+1,k) - pres(i,j-1,k)
-               !  dy = ycCoord(i-1)  - ycCoord(i+1)
-               !  v(i,j,k)   = v(i,j,k) - dt/dy * dp * rhoinv
-               !endif 
-               !if(k3d==1) then 
-               !  dp = pres(i,j+1,k) - pres(i,j-1,k)
-               !  dz = zcCoord(i-1)  - zcCoord(i+1)
-               !  w(i,j,k)   = w(i,j,k) - dt/dz * dp * rhoinv
-               !endif 
-               ! 
-               !vtot2       = u(i,j,k)**2+v(i,j,k)**2+w(i,j,k)**2
-               !ekin        = 0.5d0 * vtot2
-               !ener(i,j,k) = q(5,i,j,k) / rho
-               !eint(i,j,k) = ener(i,j,k) - ekin
-            enddo
-         enddo
-      enddo
-      call Eos_gamma 
-      !
    end subroutine hydro1D
    !
    !----------------------------------------------------------------------------------------------
    !
-   subroutine fill_guardcells_1D(dens,pres,eint,u,v,w,ib,ie,n,bc)
+   subroutine fill_guardcells_1D(dens,pres,eint,u,ib,ie,n,bc)
      use Grid, only: nguard
      use RuntimeParameters, only: outflow, periodic
      implicit none
-     real ,intent(inout), dimension(n) :: dens,pres,eint,u,v,w
+     real ,intent(inout), dimension(n) :: dens,pres,eint,u
      integer, intent(in) :: ib,ie,n 
      integer, intent(in) :: bc
      integer :: i,j,k 
@@ -254,16 +296,12 @@ contains
            pres(i) = pres(ib+nguard)
            eint(i) = eint(ib+nguard)
            u(i)    = u(ib+nguard)
-           v(i)    = v(ib+nguard)
-           w(i)    = w(ib+nguard)
          enddo 
          do i=ie-nguard+1,ie
            dens(i) = dens(ie-nguard)
            pres(i) = pres(ie-nguard)
            eint(i) = eint(ie-nguard)
            u(i)    = u(ie-nguard)
-           v(i)    = v(ie-nguard)
-           w(i)    = w(ie-nguard)
          enddo
        case(periodic) 
          do i=ib,ib+nguard-1
@@ -271,16 +309,12 @@ contains
            pres(i) = pres(ie-nguard-i+1)
            eint(i) = eint(ie-nguard-i+1)
            u(i)    = u(ie-nguard-i+1)
-           v(i)    = v(ie-nguard-i+1)
-           w(i)    = w(ie-nguard-i+1)
          enddo 
          do i=ie-nguard+1,ie
            dens(i) = dens(i-n+nguard+1)
            pres(i) = pres(i-n+nguard+1)
            eint(i) = eint(i-n+nguard+1)
            u(i)    = u(i-n+nguard+1)
-           v(i)    = v(i-n+nguard+1)
-           w(i)    = w(i-n+nguard+1)
          enddo
        case default
      end select 
@@ -361,7 +395,7 @@ contains
       !
       real :: q1,q2,q3,q4
       real :: v_face,dt
-      real :: r,limiter,flux,theta
+      real :: r,phi,flux,theta
       !
       theta = sign(1.0,v_face)
       !
@@ -375,10 +409,26 @@ contains
          r = 0.0
       endif
       !
-      limiter = phi(fl,r)
+      select case(fl)
+         !
+         case('donor-cell')
+            phi = 0.0
+         case('Lax-Wendroff')
+            phi = 1.0
+         case('Beam-Warming')
+            phi = r
+         case('Fromm')
+            phi = 0.5*(1.0+r)
+         case('minmod')
+            phi = minmod(1.0,r)
+         case('superbee')
+            phi = max(0.0,min(1.0,2.0*r),min(2.0,r))
+         case default
+            phi = 0.0
+      end select
       !
       flux = 0.5d0*v_face*((1.e0+theta)*q2+(1.e0-theta)*q3) +  &
-             0.5d0*abs(v_face)*(1.e0-abs(v_face*dt/dx))*limiter*(q3-q2)
+             0.5d0*abs(v_face)*(1.e0-abs(v_face*dt/dx))*phi*(q3-q2)
              !
       interface_flux = flux
       !

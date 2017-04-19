@@ -201,48 +201,48 @@ include Makefile.h
 
 #       Buildstamp routine
 
-buildstamp.o : .buildstamp_tmpfile
-\t./make_bstamp
-\t$(FCOMP) $(FFLAGS) buildstamp.f
-#\t$(RM) buildstamp.f
-\t$(RM) .buildstamp_tmpfile
-
-.buildstamp_tmpfile :
-\ttouch .buildstamp_tmpfile
-
-
-#       Release routine
-
-nerd_release.o : .nerd_release_tmpfile
-\t./make_release
-\t$(FCOMP) $(FFLAGS) nerd_release.f
-\t$(RM) nerd_release.f
-\t$(RM) .nerd_release_tmpfile
-
-.nerd_release_tmpfile :
-\ttouch .nerd_release_tmpfile
-
-#       Build statistics routine
-
-buildstats.o : .buildstats_tmpfile
-\t$(PRINT_F_FLAGS)
-\t$(PRINT_C_FLAGS)
-\t$(PRINT_LFLAGS)
-\t./make_bstats
-\t$(FCOMP) $(FFLAGS) $(F90FLAGS) buildstats.F90
-#\t$(RM) buildstats.F90
-\t$(RM) .buildstats_tmpfile
-
-.buildstats_tmpfile :
-\ttouch .buildstats_tmpfile
-
-
-#       FLASH Modules routine
-
-nerdModules.o : 
-\t./make_nerdModules
-\t$(FCOMP) $(FFLAGS) $(F90FLAGS) nerdModules.F90
-\t$(RM) nerdModules.F90
+#buildstamp.o : .buildstamp_tmpfile
+#\t./make_bstamp
+#\t$(FCOMP) $(FFLAGS) buildstamp.f
+##\t$(RM) buildstamp.f
+#\t$(RM) .buildstamp_tmpfile
+#
+#.buildstamp_tmpfile :
+#\ttouch .buildstamp_tmpfile
+#
+#
+##       Release routine
+#
+#nerd_release.o : .nerd_release_tmpfile
+#\t./make_release
+#\t$(FCOMP) $(FFLAGS) nerd_release.f
+#\t$(RM) nerd_release.f
+#\t$(RM) .nerd_release_tmpfile
+#
+#.nerd_release_tmpfile :
+#\ttouch .nerd_release_tmpfile
+#
+##       Build statistics routine
+#
+#buildstats.o : .buildstats_tmpfile
+#\t$(PRINT_F_FLAGS)
+#\t$(PRINT_C_FLAGS)
+#\t$(PRINT_LFLAGS)
+#\t./make_bstats
+#\t$(FCOMP) $(FFLAGS) $(F90FLAGS) buildstats.F90
+##\t$(RM) buildstats.F90
+#\t$(RM) .buildstats_tmpfile
+#
+#.buildstats_tmpfile :
+#\ttouch .buildstats_tmpfile
+#
+#
+##       NERD  Modules routine
+#
+#nerdModules.o : 
+#\t./make_nerdModules
+#\t$(FCOMP) $(FFLAGS) $(F90FLAGS) nerdModules.F90
+#\t$(RM) nerdModules.F90
 
 
 #\tModule Makefiles

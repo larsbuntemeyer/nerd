@@ -238,35 +238,35 @@ subroutine Simulation_init_advect
             !distance = sqrt(distance)
             !
             !--------------------------------------
-            distance = (xcCoord(i) - xctr)**2 
-            distance = distance + (zcCoord(k) - zctr)**2
-            distance = sqrt(distance)
-            !!
-            if(distance < 0.5*border) then
-              dens(i,j,k) = rho_l
-              eint(i,j,k) = eint_l
-            else
-              dens(i,j,k) = rho_r
-              eint(i,j,k) = eint_r
-            endif
-            u(i,j,k) = 0.1
-            v(i,j,k) = 0.0
-            w(i,j,k) = 0.1
-            !--------------------------------------
-            !if(zcCoord(k) < border) then
+            !distance = (xcCoord(i) - xctr)**2 
+            !!distance = distance + (zcCoord(k) - zctr)**2
+            !distance = sqrt(distance)
+            !!!
+            !if(distance < 0.5*border) then
             !  dens(i,j,k) = rho_l
-            !  w(i,j,k)    = vx_l
             !  eint(i,j,k) = eint_l
             !else
             !  dens(i,j,k) = rho_r
-            !  w(i,j,k)    = vx_r
             !  eint(i,j,k) = eint_r
             !endif
-            !!
-            !v(i,j,k) = 0.0 
-            !u(i,j,k) = 0.0 
-            !ek = 0.5*w(i,j,k)**2
-            !ener(i,j,k) = eint(i,j,k) + ek
+            !u(i,j,k) = 0.0
+            !v(i,j,k) = 0.0
+            !w(i,j,k) = 0.0
+            !--------------------------------------
+            if(xcCoord(i) < border) then
+              dens(i,j,k) = rho_l
+              u(i,j,k)    = vx_l
+              eint(i,j,k) = eint_l
+            else
+              dens(i,j,k) = rho_r
+              u(i,j,k)    = vx_r
+              eint(i,j,k) = eint_r
+            endif
+            !
+            v(i,j,k) = 0.0 
+            w(i,j,k) = 0.0 
+            ek = 0.5*u(i,j,k)**2
+            ener(i,j,k) = eint(i,j,k) + ek
             !--------------------------------------
             !if(zcCoord(k) < border) then
             !  dens(i,j,k) = rho_l
@@ -280,8 +280,8 @@ subroutine Simulation_init_advect
             !!
             !v(i,j,k) = 0.0 
             !u(i,j,k) = 0.0 
-            ek = 0.5*u(i,j,k)**2+v(i,j,k)**2+w(i,j,k)**2
-            ener(i,j,k) = eint(i,j,k) + ek
+            !ek = 0.5*u(i,j,k)**2+v(i,j,k)**2+w(i,j,k)**2
+            !ener(i,j,k) = eint(i,j,k) + ek
             !
          enddo
       enddo

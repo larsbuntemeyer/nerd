@@ -1,0 +1,8 @@
+# for sites with hostnames other than what you expect
+# syntax:
+# <expected sitename> <regular expression matching actual hostname of login machine>
+
+mistral mlogin10[0-9] 
+eddy eddy0[0-9] 
+hlrn hlogin[1-2].hlrn.de blogin[1-2].hlrn.de
+

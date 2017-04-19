@@ -1,0 +1,12 @@
+#	Config file for explicit hydrodynamics.  Available sub-modules are:
+
+#	  split		Directionally split hydro schemes
+#	  unsplit	Non-split schemes, which operate on all coordinate
+#			directions simultaneously
+#         delta_form    generally, hydro schemes which return du
+
+
+DEFAULT split
+
+EXCLUSIVE split unsplit
+

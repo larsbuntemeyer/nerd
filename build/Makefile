@@ -21,7 +21,7 @@ CFLAGS = -O3
 
 
 # linker flags
-LFLAGS  =
+LFLAGS  = -lpgplot -lX11
 
 vpath %.F90 $(SOURCE) 
 vpath %.h   $(INCLUDE)

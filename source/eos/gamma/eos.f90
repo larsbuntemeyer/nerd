@@ -1,22 +1,10 @@
-!
-!
-!
-module Eos  
- !
- use Grid 
- use Database
- use RuntimeParameters
- use PhysicalConstants 
- !
- implicit none
- !
- public :: Eos_gamma
- !
- contains 
- !
- !
- !
- subroutine Eos_gamma
+
+ subroutine eos 
+    !
+    use mo_constants
+    use mo_database
+    use mo_namelist
+    use mo_grid, only: ib,ie,kb,ke,jb,je
     !
     implicit none
     integer :: i,j,k
@@ -32,7 +20,4 @@ module Eos
        enddo  
     enddo
     !       
- end subroutine Eos_gamma 
- !
-end module Eos
-!
+ end subroutine eos 

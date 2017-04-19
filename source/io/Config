@@ -1,0 +1,5 @@
+#	This is the configuration file for the driver module of the FLASH code.
+
+DEFAULT asci
+
+

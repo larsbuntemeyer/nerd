@@ -1,0 +1,11 @@
+#	Config file for the hydrodynamics module.  Available sub-modules are:
+
+#	  explicit	Explicit time integration
+#	  implicit	Implicit time integration
+
+REQUIRES driver
+
+DEFAULT explicit
+
+EXCLUSIVE explicit semi-implicit
+
