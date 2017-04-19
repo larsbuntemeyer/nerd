@@ -19,7 +19,7 @@ subroutine init_namelist
    dtmin = 1.d-10
    dtmax = 0.5
    t_max = 0.2 !0.1
-   dtini = 1.e-3
+   dtini = 1.e-4
    n_max = 100000
    gamma = 7.d0/5.d0
    mu_mol = 1.0
