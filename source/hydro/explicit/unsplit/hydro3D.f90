@@ -1,11 +1,11 @@
 subroutine hydro3D(dt)
       !
-      use Grid, only: ib,ie,kbg,keg,jbg,jeg,ibg,ieg,jb,je,kb,ke, &
+      use mo_grid, only: ib,ie,kbg,keg,jbg,jeg,ibg,ieg,jb,je,kb,ke, &
                       xcCoord,ycCoord,zcCoord,       &
                       xlCoord,xrCoord,zlCoord,zrCoord, &
                       ylCoord,yrCoord,k2d,k3d
-      use Database, only: dens,pres,u,v,w,eint,nvar,uf,vf,wf,ener
-      use Eos, only: Eos_gamma
+      use mo_database, only: dens,pres,u,v,w,eint,nvar,uf,vf,wf,ener
+      use mo_hydro, only: interface_flux
       !
       implicit none
       !
@@ -124,7 +124,7 @@ subroutine hydro3D(dt)
          enddo
       enddo 
       !
-      call Eos_gamma 
+      call eos
       !
       ! Now add pressure force
       !
@@ -153,6 +153,6 @@ subroutine hydro3D(dt)
             enddo
          enddo
       enddo
-      call Eos_gamma 
+      call eos
       !
 end subroutine hydro3D

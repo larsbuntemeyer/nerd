@@ -1,4 +1,6 @@
 
 REQUIRES driver
 REQUIRES eos
+#REQUIRES hydro/explicit
+REQUIRES hydro/explicit/unsplit
 
