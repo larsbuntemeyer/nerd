@@ -1,7 +1,7 @@
 
 subroutine io_write_to_file
    !
-   use mo_grid, only: ib,ie,jb,je,kb,ke,xcCoord
+   use mo_grid, only: ib,ie,jb,je,kb,ke,xcCoord,ycCoord,zcCoord
    use mo_database
    use mo_io, only: outdata_unit
    !
@@ -12,7 +12,7 @@ subroutine io_write_to_file
     do j=jb,je
      do k=kb,ke
       !
-      write(outdata_unit,'(5F18.8)') xcCoord(i),dens(i,j,k), &
+      write(outdata_unit,'(7F18.8)') xcCoord(i),ycCoord(j),zcCoord(k),dens(i,j,k), &
                                      u(i,j,k),pres(i,j,k),eint(i,j,k)
       !
      enddo  

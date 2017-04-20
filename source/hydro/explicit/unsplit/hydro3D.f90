@@ -4,7 +4,8 @@ subroutine hydro3D(dt)
                       xcCoord,ycCoord,zcCoord,       &
                       xlCoord,xrCoord,zlCoord,zrCoord, &
                       ylCoord,yrCoord,k2d,k3d
-      use mo_database, only: dens,pres,u,v,w,eint,nvar,uf,vf,wf,ener
+      use mo_parameters, only: nvar
+      use mo_database, only: dens,pres,u,v,w,eint,uf,vf,wf,ener
       use mo_hydro, only: interface_flux
       !
       implicit none

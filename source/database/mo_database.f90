@@ -1,12 +1,7 @@
 !
 module mo_database
    !
-   !
    implicit none
-   !
-   !  number of state-variables
-   !
-   integer, save :: nvar
    !
    !  the state-variables
    !

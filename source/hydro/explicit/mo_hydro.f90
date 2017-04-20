@@ -10,7 +10,7 @@ contains
    !
    !
    subroutine fill_guardcells_1D(dens,pres,eint,u,v,w,ib,ie,n,bc)
-     use mo_grid, only: nguard
+     use mo_parameters, only: nguard
      use mo_namelist, only: outflow, periodic
      implicit none
      real ,intent(inout), dimension(n) :: dens,pres,eint,u,v,w

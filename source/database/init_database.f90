@@ -5,12 +5,11 @@ subroutine init_database
    !
    use mo_database
    use mo_grid
+   use mo_parameters
    !
    implicit none
    !
    write(*,*) '----- Database_init ---------------'
-   !
-   nvar = 5 
    !
    write(*,*) 'allocating'
    allocate(dens(ibg:ieg,jbg:jeg,kbg:keg))

@@ -70,13 +70,13 @@ subroutine init_domain
             ! Here one should init the physics 
             !
             !distance = (xcCoord(i) - xctr)**2 
-            !if(ndim>2) then 
+            !if(ndim>1) then 
             !   distance = distance + (ycCoord(j) - yctr)**2 
             !endif
             !if(ndim==3) then 
             !   distance = distance + (zcCoord(k) - zctr)**2 
             !endif
-            !
+            !!
             !distance = sqrt(distance)
             !
             !--------------------------------------

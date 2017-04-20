@@ -3,12 +3,14 @@
 !
 module mo_grid
    !
+   use mo_parameters, only: nguard, ndim, k2d, k3d
+   !
    implicit none
    !
-   integer,          save :: ndim
+   !integer,          save :: ndim
    integer,          save :: nx,ny,nz
-   integer,          save :: k2d,k3d 
-   integer,          save :: nguard
+   !integer,          save :: k2d,k3d 
+   !integer,          save :: nguard
    integer,          save :: ib,jb,kb
    integer,          save :: ie,je,ke
    integer,          save :: ibg,jbg,kbg

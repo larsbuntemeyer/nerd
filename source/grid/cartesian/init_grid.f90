@@ -2,20 +2,21 @@
 subroutine init_grid
    ! 
    use mo_grid
-   use mo_namelist 
+   use mo_namelist
+   use mo_parameters 
    !
    !
    implicit none
    !
    integer        :: i,j,k
    !
-   ndim    = 1
-   nx      = 100 
-   ny      = 1
-   nz      = 1
-   k2d     = 0
-   k3d     = 0
-   nguard  = 2
+   !ndim    = 1
+   nx      = nxb 
+   ny      = nyb
+   nz      = nzb
+   !k2d     = 0
+   !k3d     = 0
+   !nguard  = 2
    !
    ! Precalculate loop indices as following:
    ! -----------------------------------------------------------------------------------------------

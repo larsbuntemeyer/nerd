@@ -5,6 +5,7 @@ subroutine hydro_solve(dt)
  !
  use mo_grid, only: ndim,ib,ie,nx,ibg,ieg,jbg,jeg,kbg,keg
  use mo_database
+ use mo_parameters, only: nvar
  use mo_namelist, only: bc
  use mo_hydro, only: fill_guardcells_1D
  !

@@ -4,6 +4,7 @@ subroutine init_driver
    !
    !write(*,*) '----- Driver_init_nerd-------------'
    !!
+   call dump_parameters
    call init_namelist 
    call init_grid
    call init_database
