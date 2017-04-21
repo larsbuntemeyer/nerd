@@ -26,7 +26,9 @@ module mo_namelist
    !
    character(80)           :: fl
    !
-   integer, parameter :: outflow=1, periodic=2
-   integer, parameter :: bc = outflow
+   integer, parameter :: outflow=1, periodic=2, reflective=3
+   integer, parameter :: bc = reflective
+   !
+   integer     :: output_interval
    !
 end module mo_namelist

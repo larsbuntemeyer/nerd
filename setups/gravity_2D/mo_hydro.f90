@@ -57,17 +57,17 @@ contains
            dens(i) = dens(ib+nguard)
            pres(i) = pres(ib+nguard)
            eint(i) = eint(ib+nguard)
-           u(i)    = -u(ib+nguard)
-           v(i)    = -v(ib+nguard)
-           w(i)    = -w(ib+nguard)
+           u(i)    = u(ib+nguard)
+           v(i)    = 0.0!v(ib+nguard)
+           w(i)    = w(ib+nguard)
          enddo 
          do i=ie-nguard+1,ie
            dens(i) = dens(ie-nguard)
            pres(i) = pres(ie-nguard)
            eint(i) = eint(ie-nguard)
-           u(i)    = -u(ie-nguard)
-           v(i)    = -v(ie-nguard)
-           w(i)    = -w(ie-nguard)
+           u(i)    = u(ie-nguard)
+           v(i)    = 0.0!v(ie-nguard)
+           w(i)    = w(ie-nguard)
          enddo
        case default
      end select 
@@ -77,6 +77,7 @@ contains
       !
       use mo_grid
       use mo_database
+      use mo_parameters, only: nguard
       !
       implicit none
       !
@@ -140,15 +141,14 @@ contains
    !
    !----------------------------------------------------------------------------------------------
    !
-   real function interface_flux(q1,q2,q3,q4,v_face,dt)
+   real function interface_flux(q1,q2,q3,q4,v_face,dt,dx)
       !
-      use mo_grid
       use mo_namelist
       !
       implicit none
       !
       real :: q1,q2,q3,q4
-      real :: v_face,dt
+      real :: v_face,dt,dx
       real :: r,limiter,flux,theta
       !
       theta = sign(1.0,v_face)

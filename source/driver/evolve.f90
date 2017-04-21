@@ -2,13 +2,12 @@ subroutine evolve
 !
 use mo_namelist
 use mo_database
-use mo_grid, only: ib,ie,jb,je,kb,ke,dx
+use mo_parameters, only: ndim
+use mo_grid, only: ib,ie,jb,je,kb,ke,dx,dy
+use mo_driver
 !
 implicit none
 !
-integer   :: step
-real      :: current_time
-real      :: dt, vmax
 !
 write(*,*) '----- Driver_evolve_nerd ----------'
 !
@@ -19,8 +18,11 @@ dt = dtini
 !
 do while(current_time<t_max)
    !
-   write(*,'(I5,4D18.8)') step,current_time,dt, sum(ener(ib:ie,jb:je,kb:ke)), &
-                                                sum(dx*dens(ib:ie,jb:je,kb:ke))
+   !
+   write(*,'(I5,6D18.8)') step,current_time,dt, sum(ener(ib:ie,jb:je,kb:ke)), &
+                                                sum(dx*dens(ib:ie,jb:je,kb:ke)), &
+                                                maxval(abs(u(ib:ie,jb:je,kb:ke))), &
+                                                maxval(abs(v(ib:ie,jb:je,kb:ke)))
    !
    call eos
    ! 
@@ -29,6 +31,14 @@ do while(current_time<t_max)
    current_time = current_time + dt  
    step         = step+1
    ! 
+   dt = cfl*minval(dx/((abs(u))))
+   !if(ndim>1) dt = min(dt,cfl*dy/(maxval(abs(u))))
+   if(dt.gt.dtmax) dt = dtmax
+   !
+   if(mod(step,output_interval)==0) then
+      write(*,*) '-------- writing to file ----------'
+      call io_write_to_file
+   endif
    !
 enddo
 !

@@ -6,14 +6,14 @@ EXE       = nerd
 FCOMP      = gfortran 
 F90FLAGS  = -ffree-form
 F77FLAGS  = -ffixed-form
-FFLAGS_OPT = -cpp -c -fconvert=big-endian
-LFLAGS_OPT = -o
+FFLAGS_OPT = -cpp -O3 -c -fconvert=big-endian -fdefault-real-8 -I/usr/include
+LFLAGS_OPT = -L/usr/lib -lnetcdff -lnetcdf  -o 
 LINK       = $(FCOMP)
-FFLAGS_OPT  = -cpp -c -g -Wall -Wextra -Warray-temporaries -Wconversion -fimplicit-none -fbacktrace -ffree-line-length-0 -fcheck=all -finit-real=nan -fdefault-real-8 
+#FFLAGS_OPT  = -cpp -c -g -Wall -Wextra -Warray-temporaries -Wconversion -fimplicit-none -fbacktrace -ffree-line-length-0 -fcheck=all -finit-real=nan -fdefault-real-8 
 
 # netcdf flags 
-NCINCLUDE  = 
-NCLIBS     = 
+INCLUDE  =  -I/usr/include
+LIB     = -L/usr/lib -lnetcdff -lnetcdf
 
 
 ECHO = echo

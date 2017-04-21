@@ -5,7 +5,7 @@ subroutine init_database
    !
    use mo_database
    use mo_grid
-   use mo_parameters
+   use mo_parameters, only: nguard,k2d,k3d
    !
    implicit none
    !

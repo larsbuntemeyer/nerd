@@ -8,6 +8,8 @@ subroutine finish_driver
    !
    call io_write_to_file
    !
+   call io_close
+   !
    write(*,*) 'writing to file... done'
    write(*,*) '----- Driver_finish_nerd done------'
    !

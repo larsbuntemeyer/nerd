@@ -12,8 +12,8 @@ subroutine io_write_to_file
     do j=jb,je
      do k=kb,ke
       !
-      write(outdata_unit,'(7F18.8)') xcCoord(i),ycCoord(j),zcCoord(k),dens(i,j,k), &
-                                     u(i,j,k),pres(i,j,k),eint(i,j,k)
+      write(outdata_unit,'(7E18.8)') xcCoord(i),ycCoord(j),zcCoord(k),dens(i,j,k), &
+                                     pres(i,j,k),eint(i,j,k)
       !
      enddo  
     enddo  

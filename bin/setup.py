@@ -155,9 +155,6 @@ include Makefile.h
 
 default : $(EXE)
 
-INCLUDE = $(NCINCLUDE) 
-LIBS    = $(NCLIBS)
-
 #\tMachine-dependent include file
 
 CDEFINES = %(cDefines)s

@@ -1,0 +1,7 @@
+
+REQUIRES driver
+REQUIRES eos
+REQUIRES io/netcdf
+REQUIRES hydro/explicit/unsplit
+#REQUIRES hydro/explicit/split
+

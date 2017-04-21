@@ -193,136 +193,136 @@ module mo_parameters
   parameter (nyhi=nguard*k2d+nyb)
   parameter (nzhi=nguard*k3d+nzb)
   
-  real, DIMENSION(nvar,il_bnd:iu_bnd,jl_bnd:ju_bnd,                   &
-       &     kl_bnd:ku_bnd,maxblocks), TARGET :: unk
-  real, DIMENSION(nvar2,il_bnd:iu_bnd,maxblocks),                     &
-       &     TARGET :: unk2
-  real, DIMENSION(nvar2,jl_bnd:ju_bnd,maxblocks),                     &
-       &     TARGET :: unk3
-  real, DIMENSION(nvar2,kl_bnd:ku_bnd,maxblocks),                     &
-       &     TARGET :: unk4
-  real, DIMENSION(nvarsm,nxlo:nxhi,                                   &
-       &     nylo:nyhi,nzlo:nzhi,maxblocks), TARGET :: unksm
-  
-  
- 
-!
-!
-!
-! The convention for relating variables associated with cell faces to the
-! variables defined at cell centers is as follows:
-!
-! If iface_off=0 :
-!         the array facevarx(:,i,j,k,:) for example defines data
-!         on the x(i-1/2) face of the (i,j,k)-th mesh cell.
-! If iface_off=-1 :
-!         the array facevarx(:,i,j,k,:) for example defines data
-!         on the x(i+1/2) face of the (i,j,k)-th mesh cell.
-!
-  integer iface_off
-  parameter(iface_off=0)                                  !<<< USER EDIT
-!
-!
-! The number of data words needed on a cell face is set by nfacevar.
-!
-!
-  integer nfacevar
-! 2 added to store strong fields at faces for all components of B
-  parameter(nfacevar=0)   !<<< USER EDIT
-!
-  integer nbndvar
-  parameter(nbndvar=max(1,nfacevar))
-!
-  integer maxblocksf
-  parameter(maxblocksf= 1+(maxblocks-1)*min(1,nfacevar) )
-!
-! common block storing the solution for cell-face-centered quantities.
-  real ::                                                           &
-       &     facevarx(nbndvar,il_bnd:iu_bnd+1,jl_bnd:ju_bnd,              &
-       &     kl_bnd:ku_bnd,maxblocksf)                                    &
-       &     ,facevary(nbndvar,il_bnd:iu_bnd,jl_bnd:ju_bnd+k2d,           &
-       &     kl_bnd:ku_bnd,maxblocksf)                                    &
-       &     ,facevarz(nbndvar,il_bnd:iu_bnd,jl_bnd:ju_bnd,               &
-       &     kl_bnd:ku_bnd+k3d,maxblocksf)
-  
-!
-! set data length of grid blocks
-  integer len_block
-  parameter(len_block=iu_bnd*ju_bnd*ku_bnd*nvar)
-!
-  integer len_blockfx,len_blockfy,len_blockfz
-  parameter(len_blockfx=(nxb+2*nguard+1)*(nyb+2*nguard*k2d)*        &
-       &                          (nzb+2*nguard*k3d))
-  parameter(len_blockfy=(nxb+2*nguard)*(nyb+2*nguard+1)*            &
-       &                          (nzb+2*nguard*k3d))
-  parameter(len_blockfz=(nxb+2*nguard)*(nyb+2*nguard)*              &
-       &                          ((nzb+2*nguard)*k3d+1))
-!
-!
-! common block for timestep control
-  integer maxlevels
-  parameter(maxlevels=20)
-  common/timecntl/                                                  &
-       & time_loc(maxblocks),dtlevel(maxlevels),ldtcomplete(maxblocks)
-  real time_loc,dtlevel
-  logical ldtcomplete
-!
-!
-#if defined(VAR_DT) || defined(PRED_CORR)
-!      parameter(maxblocks_t=(maxblocks-1)*ivar_dt+1)
-!      parameter(nvar_t=(nvar-1)*ivar_dt+1)
-  common/tsolution/                                                 &
-       &      t_unk(nvar,il_bnd:iu_bnd,jl_bnd:ju_bnd,kl_bnd:ku_bnd,       &
-       &       maxblocks)
-  real t_unk
-#endif
-!
-#ifdef PRED_CORR
-  real ::                                                         &
-       &           tfacevarx(nbndvar,il_bnd:iu_bnd+1,jl_bnd:ju_bnd,       &
-       &                          kl_bnd:ku_bnd,maxblocksf)               &
-       &          ,tfacevary(nbndvar,il_bnd:iu_bnd,jl_bnd:ju_bnd+k2d,     &
-       &                          kl_bnd:ku_bnd,maxblocksf)               &
-       &          ,tfacevarz(nbndvar,il_bnd:iu_bnd,jl_bnd:ju_bnd,         &
-       &                          kl_bnd:ku_bnd+k3d,maxblocksf)
-  
-#endif
-!
-! To average fluxes set red_f = .25.
-! To sum fluxes set red_f = 1.0.
-!
-! changed -- 2-24-00 
-! we are now converting the flux densities to fluxes before the call to
-! amr_flux_conserve.  This is to get the proper geometry factors included
-! in non-cartesian cases.  The fluxes are converted back after the call.
+!  real, DIMENSION(nvar,il_bnd:iu_bnd,jl_bnd:ju_bnd,                   &
+!       &     kl_bnd:ku_bnd,maxblocks), TARGET :: unk
+!  real, DIMENSION(nvar2,il_bnd:iu_bnd,maxblocks),                     &
+!       &     TARGET :: unk2
+!  real, DIMENSION(nvar2,jl_bnd:ju_bnd,maxblocks),                     &
+!       &     TARGET :: unk3
+!  real, DIMENSION(nvar2,kl_bnd:ku_bnd,maxblocks),                     &
+!       &     TARGET :: unk4
+!  real, DIMENSION(nvarsm,nxlo:nxhi,                                   &
+!       &     nylo:nyhi,nzlo:nzhi,maxblocks), TARGET :: unksm
+!  
+!  
 ! 
-! red_f is set according to dimension, to sum instead of average
-  real red_f
-!      parameter(red_f = 0.25)   
-!
-#if N_DIM == 1
-  parameter (red_f = 0.25)
-#elif N_DIM == 2
-  parameter (red_f = 0.5)
-#elif N_DIM == 3
-  parameter (red_f = 1.0)
-#endif
-!
-!-----------------------------------------------------------------
-! include header file defining data structure on cell faces
-!
-!-----------------------------------------------------------------
-!
-! This file defines a data structure to be used for quantities
-! which may need to be defined at grid block interfaces, eg fluxes,
-! pressures.
-!
-!
-!
-! storage used for fluxes at block boundaries. This is used when conservation
-! constraints need to be imposed.
-!
-! updated 2-15-00 -- allocate storage for the internal energy flux
+!!
+!!
+!!
+!! The convention for relating variables associated with cell faces to the
+!! variables defined at cell centers is as follows:
+!!
+!! If iface_off=0 :
+!!         the array facevarx(:,i,j,k,:) for example defines data
+!!         on the x(i-1/2) face of the (i,j,k)-th mesh cell.
+!! If iface_off=-1 :
+!!         the array facevarx(:,i,j,k,:) for example defines data
+!!         on the x(i+1/2) face of the (i,j,k)-th mesh cell.
+!!
+!  integer iface_off
+!  parameter(iface_off=0)                                  !<<< USER EDIT
+!!
+!!
+!! The number of data words needed on a cell face is set by nfacevar.
+!!
+!!
+!  integer nfacevar
+!! 2 added to store strong fields at faces for all components of B
+!  parameter(nfacevar=0)   !<<< USER EDIT
+!!
+!  integer nbndvar
+!  parameter(nbndvar=max(1,nfacevar))
+!!
+!  integer maxblocksf
+!  parameter(maxblocksf= 1+(maxblocks-1)*min(1,nfacevar) )
+!!
+!! common block storing the solution for cell-face-centered quantities.
+!  real ::                                                           &
+!       &     facevarx(nbndvar,il_bnd:iu_bnd+1,jl_bnd:ju_bnd,              &
+!       &     kl_bnd:ku_bnd,maxblocksf)                                    &
+!       &     ,facevary(nbndvar,il_bnd:iu_bnd,jl_bnd:ju_bnd+k2d,           &
+!       &     kl_bnd:ku_bnd,maxblocksf)                                    &
+!       &     ,facevarz(nbndvar,il_bnd:iu_bnd,jl_bnd:ju_bnd,               &
+!       &     kl_bnd:ku_bnd+k3d,maxblocksf)
+!  
+!!
+!! set data length of grid blocks
+!  integer len_block
+!  parameter(len_block=iu_bnd*ju_bnd*ku_bnd*nvar)
+!!
+!  integer len_blockfx,len_blockfy,len_blockfz
+!  parameter(len_blockfx=(nxb+2*nguard+1)*(nyb+2*nguard*k2d)*        &
+!       &                          (nzb+2*nguard*k3d))
+!  parameter(len_blockfy=(nxb+2*nguard)*(nyb+2*nguard+1)*            &
+!       &                          (nzb+2*nguard*k3d))
+!  parameter(len_blockfz=(nxb+2*nguard)*(nyb+2*nguard)*              &
+!       &                          ((nzb+2*nguard)*k3d+1))
+!!
+!!
+!! common block for timestep control
+!  integer maxlevels
+!  parameter(maxlevels=20)
+!  common/timecntl/                                                  &
+!       & time_loc(maxblocks),dtlevel(maxlevels),ldtcomplete(maxblocks)
+!  real time_loc,dtlevel
+!  logical ldtcomplete
+!!
+!!
+!#if defined(VAR_DT) || defined(PRED_CORR)
+!!      parameter(maxblocks_t=(maxblocks-1)*ivar_dt+1)
+!!      parameter(nvar_t=(nvar-1)*ivar_dt+1)
+!  common/tsolution/                                                 &
+!       &      t_unk(nvar,il_bnd:iu_bnd,jl_bnd:ju_bnd,kl_bnd:ku_bnd,       &
+!       &       maxblocks)
+!  real t_unk
+!#endif
+!!
+!#ifdef PRED_CORR
+!  real ::                                                         &
+!       &           tfacevarx(nbndvar,il_bnd:iu_bnd+1,jl_bnd:ju_bnd,       &
+!       &                          kl_bnd:ku_bnd,maxblocksf)               &
+!       &          ,tfacevary(nbndvar,il_bnd:iu_bnd,jl_bnd:ju_bnd+k2d,     &
+!       &                          kl_bnd:ku_bnd,maxblocksf)               &
+!       &          ,tfacevarz(nbndvar,il_bnd:iu_bnd,jl_bnd:ju_bnd,         &
+!       &                          kl_bnd:ku_bnd+k3d,maxblocksf)
+!  
+!#endif
+!!
+!! To average fluxes set red_f = .25.
+!! To sum fluxes set red_f = 1.0.
+!!
+!! changed -- 2-24-00 
+!! we are now converting the flux densities to fluxes before the call to
+!! amr_flux_conserve.  This is to get the proper geometry factors included
+!! in non-cartesian cases.  The fluxes are converted back after the call.
+!! 
+!! red_f is set according to dimension, to sum instead of average
+!  real red_f
+!!      parameter(red_f = 0.25)   
+!!
+!#if N_DIM == 1
+!  parameter (red_f = 0.25)
+!#elif N_DIM == 2
+!  parameter (red_f = 0.5)
+!#elif N_DIM == 3
+!  parameter (red_f = 1.0)
+!#endif
+!!
+!!-----------------------------------------------------------------
+!! include header file defining data structure on cell faces
+!!
+!!-----------------------------------------------------------------
+!!
+!! This file defines a data structure to be used for quantities
+!! which may need to be defined at grid block interfaces, eg fluxes,
+!! pressures.
+!!
+!!
+!!
+!! storage used for fluxes at block boundaries. This is used when conservation
+!! constraints need to be imposed.
+!!
+!! updated 2-15-00 -- allocate storage for the internal energy flux
 
 #include "nerd_defines.fh"
   
@@ -334,185 +334,185 @@ module mo_parameters
 !
   integer maxblocksfl
   parameter(maxblocksfl= 1+(maxblocks-1)*min(1,nfluxvar) )
+!!
+!!
+!!
+!!..in 1d the flux_y, flux_z, tflux_y, and tflux_z arrays are not used,
+!!..but do need to be declared. thus, in 1d the parameter maxblocksfl
+!!..has been replaced with a 1. this significantly reduces the
+!!..memory footprint for 1d simulations.
+!!
+!!..in 2d the flux_z and tflux_z arrays are not used,
+!!..but do need to be declared. thus, in 2d the parameter maxblocksfl
+!!..has been replaced with a 1. this significantly reduces the
+!!..memory footprint for 2d simulations.
+!!
+!#if N_DIM == 1
+!  real, target ::                                                  &
+!       flux_x(nfluxes,1:2,jl_bnd:ju_bnd,kl_bnd:ku_bnd,maxblocksfl),&
+!       flux_y(nfluxes,il_bnd:iu_bnd,1:2,kl_bnd:ku_bnd,1),          &
+!       flux_z(nfluxes,il_bnd:iu_bnd,jl_bnd:ju_bnd,1:2,1)
+!!
+!  real, target ::                                                   &
+!       tflux_x(nfluxes,1:2,jl_bnd:ju_bnd,kl_bnd:ku_bnd,maxblocksfl),&
+!       tflux_y(nfluxes,il_bnd:iu_bnd,1:2,kl_bnd:ku_bnd,1),          &
+!       tflux_z(nfluxes,il_bnd:iu_bnd,jl_bnd:ju_bnd,1:2,1)
 !
-!
-!
-!..in 1d the flux_y, flux_z, tflux_y, and tflux_z arrays are not used,
-!..but do need to be declared. thus, in 1d the parameter maxblocksfl
-!..has been replaced with a 1. this significantly reduces the
-!..memory footprint for 1d simulations.
-!
-!..in 2d the flux_z and tflux_z arrays are not used,
-!..but do need to be declared. thus, in 2d the parameter maxblocksfl
-!..has been replaced with a 1. this significantly reduces the
-!..memory footprint for 2d simulations.
-!
-#if N_DIM == 1
-  real, target ::                                                  &
-       flux_x(nfluxes,1:2,jl_bnd:ju_bnd,kl_bnd:ku_bnd,maxblocksfl),&
-       flux_y(nfluxes,il_bnd:iu_bnd,1:2,kl_bnd:ku_bnd,1),          &
-       flux_z(nfluxes,il_bnd:iu_bnd,jl_bnd:ju_bnd,1:2,1)
-!
-  real, target ::                                                   &
-       tflux_x(nfluxes,1:2,jl_bnd:ju_bnd,kl_bnd:ku_bnd,maxblocksfl),&
-       tflux_y(nfluxes,il_bnd:iu_bnd,1:2,kl_bnd:ku_bnd,1),          &
-       tflux_z(nfluxes,il_bnd:iu_bnd,jl_bnd:ju_bnd,1:2,1)
-
-#endif
-!
-!
-#if N_DIM == 2
-  real, target ::                                                   &
-       flux_x(nfluxes,1:2,jl_bnd:ju_bnd,kl_bnd:ku_bnd,maxblocksfl), &
-       flux_y(nfluxes,il_bnd:iu_bnd,1:2,kl_bnd:ku_bnd,maxblocksfl), &
-       flux_z(nfluxes,il_bnd:iu_bnd,jl_bnd:ju_bnd,1:2,1)
-  
-!
-  real, target ::                                                    &
-       tflux_x(nfluxes,1:2,jl_bnd:ju_bnd,kl_bnd:ku_bnd,maxblocksfl), &
-       tflux_y(nfluxes,il_bnd:iu_bnd,1:2,kl_bnd:ku_bnd,maxblocksfl), &
-       tflux_z(nfluxes,il_bnd:iu_bnd,jl_bnd:ju_bnd,1:2,1)
-#endif
-!
-!
-#if N_DIM == 3
-  real, target ::                                                  &
-       flux_x(nfluxes,1:2,jl_bnd:ju_bnd,kl_bnd:ku_bnd,maxblocksfl),&
-       flux_y(nfluxes,il_bnd:iu_bnd,1:2,kl_bnd:ku_bnd,maxblocksfl),&
-       flux_z(nfluxes,il_bnd:iu_bnd,jl_bnd:ju_bnd,1:2,maxblocksfl)
-!
-  real, target ::                                                    &
-       tflux_x(nfluxes,1:2,jl_bnd:ju_bnd,kl_bnd:ku_bnd,maxblocksfl), &
-       tflux_y(nfluxes,il_bnd:iu_bnd,1:2,kl_bnd:ku_bnd,maxblocksfl), &
-       tflux_z(nfluxes,il_bnd:iu_bnd,jl_bnd:ju_bnd,1:2,maxblocksfl)
-#endif
-!
-!
-!
-! storage used for cell edges at block boundaries. 
-! This is used when quantities located at cell edge centers need to
-! be used consistently at the boundaries between blocks at different
-! refinement levels.
-!
-  integer nedgevar
-  parameter(nedgevar=1)                                     !<<< USER EDIT
-!
-  integer nedges
-  parameter(nedges=max(1,nedgevar))
-!
-  integer maxblockse
-  parameter(maxblockse= 1+(maxblocks-1)*min(1,nedgevar) )
-!
-!
-!..flash does not presently use these edge storage variables
-!..but it might when magnetic fields are included. until then,
-!..the maxblockse size declaration has been replaced with 1 in order
-!..to reduce the memory footprint.
-!
-!      common/edges/
-!     .  bedge_facex_y(nedges,1:2,jl_bnd:ju_bnd+1,
-!     .    kl_bnd:ku_bnd+1,maxblockse),
-!     .  bedge_facex_z(nedges,1:2,jl_bnd:ju_bnd+1,
-!     .    kl_bnd:ku_bnd+1,maxblockse),
-!     .  bedge_facey_x(nedges,il_bnd:iu_bnd+1,1:2,
-!     .    kl_bnd:ku_bnd+1,maxblockse),
-!     .  bedge_facey_z(nedges,il_bnd:iu_bnd+1,1:2,
-!     .    kl_bnd:ku_bnd+1,maxblockse),
-!     .  bedge_facez_x(nedges,il_bnd:iu_bnd+1,jl_bnd:ju_bnd+1,
-!     .    1:2,maxblockse),
-!     .  bedge_facez_y(nedges,il_bnd:iu_bnd+1,jl_bnd:ju_bnd+1,
-!     .    1:2,maxblockse),
-!
-!
-  real ::                                                         &
-       &  bedge_facex_y(nedges,1:2,jl_bnd:ju_bnd+1,                       &
-       &    kl_bnd:ku_bnd+1,1),                                           &
-       &  bedge_facex_z(nedges,1:2,jl_bnd:ju_bnd+1,                       &
-       &    kl_bnd:ku_bnd+1,1),                                           &
-       &  bedge_facey_x(nedges,il_bnd:iu_bnd+1,1:2,                       &
-       &    kl_bnd:ku_bnd+1,1),                                           &
-       &  bedge_facey_z(nedges,il_bnd:iu_bnd+1,1:2,                       &
-       &    kl_bnd:ku_bnd+1,1),                                           &
-       &  bedge_facez_x(nedges,il_bnd:iu_bnd+1,jl_bnd:ju_bnd+1,           &
-       &    1:2,1),                                                       &
-       &  bedge_facez_y(nedges,il_bnd:iu_bnd+1,jl_bnd:ju_bnd+1,           &
-       &    1:2,1),                                                       &
-       &  recvarx1e(nedges,1:2,jl_bnd:ju_bnd+1,kl_bnd:ku_bnd+1),          &
-       &  recvary1e(nedges,il_bnd:iu_bnd+1,1:2,kl_bnd:ku_bnd+1),          &
-       &  recvarz1e(nedges,il_bnd:iu_bnd+1,jl_bnd:ju_bnd+1,1:2),          &
-       &  recvarx2e(nedges,1:2,jl_bnd:ju_bnd+1,kl_bnd:ku_bnd+1),          &
-       &  recvary2e(nedges,il_bnd:iu_bnd+1,1:2,kl_bnd:ku_bnd+1),          &
-       &  recvarz2e(nedges,il_bnd:iu_bnd+1,jl_bnd:ju_bnd+1,1:2)
-!
-!
-!..flash does not presently use these edge storage variables
-!..but it might when mhd is added in.
-!..the maxblockse size declaration has been reduced to 1 in order
-!..to help reduce the memory footprint.
-!..28nov99 fxt
-!
-!
-!      common/tedges/
-!     .  tbedge_facex_y(nedges,1:2,jl_bnd:ju_bnd+1,
-!     .    kl_bnd:ku_bnd+1,maxblockse),
-!     .  tbedge_facex_z(nedges,1:2,jl_bnd:ju_bnd+1,
-!     .    kl_bnd:ku_bnd+1,maxblockse),
-!     .  tbedge_facey_x(nedges,il_bnd:iu_bnd+1,1:2,
-!     .    kl_bnd:ku_bnd+1,maxblockse),
-!     .  tbedge_facey_z(nedges,il_bnd:iu_bnd+1,1:2,
-!     .    kl_bnd:ku_bnd+1,maxblockse),
-!     .  tbedge_facez_x(nedges,il_bnd:iu_bnd+1,jl_bnd:ju_bnd+1,
-!     .    1:2,maxblockse),
-!     .  tbedge_facez_y(nedges,il_bnd:iu_bnd+1,jl_bnd:ju_bnd+1,
-!     .    1:2,maxblockse)
-!
-  real ::                                                         &
-       &  tbedge_facex_y(nedges,1:2,jl_bnd:ju_bnd+1,                      &
-       &    kl_bnd:ku_bnd+1,1),                                           &
-       &  tbedge_facex_z(nedges,1:2,jl_bnd:ju_bnd+1,                      &
-       &    kl_bnd:ku_bnd+1,1),                                           &
-       &  tbedge_facey_x(nedges,il_bnd:iu_bnd+1,1:2,                      &
-       &    kl_bnd:ku_bnd+1,1),                                           &
-       &  tbedge_facey_z(nedges,il_bnd:iu_bnd+1,1:2,                      &
-       &    kl_bnd:ku_bnd+1,1),                                           &
-       &  tbedge_facez_x(nedges,il_bnd:iu_bnd+1,jl_bnd:ju_bnd+1,          &
-       &    1:2,1),                                                       &
-       &  tbedge_facez_y(nedges,il_bnd:iu_bnd+1,jl_bnd:ju_bnd+1,          &
-       &    1:2,1)
-!
-!
-!
-! workspace arrays used for inter-block communications
-  integer nbndmax
-  parameter(nbndmax=max(nbndvar,nfluxes))
-  real ::                                                         &
-       &     recvarx1(nbndmax,1:2,jl_bnd:ju_bnd,kl_bnd:ku_bnd)            &
-       &    ,recvary1(nbndmax,il_bnd:iu_bnd,1:2,kl_bnd:ku_bnd)            &
-       &    ,recvarz1(nbndmax,il_bnd:iu_bnd,jl_bnd:ju_bnd,1:2)            &
-       &    ,bndtempx1(nfluxes,1:2,jl_bnd:ju_bnd,kl_bnd:ku_bnd)           &
-       &    ,bndtempy1(nfluxes,il_bnd:iu_bnd,1:2,kl_bnd:ku_bnd)           &
-       &    ,bndtempz1(nfluxes,il_bnd:iu_bnd,jl_bnd:ju_bnd,1:2)
-  
-!
-!
-!
-!
-! parameters used in communication calls
-  integer len_block_bndx,len_block_bndy,len_block_bndz
-  parameter(len_block_bndx=2*(nyb+2*nguard*k2d)*                    &
-       &                                 (nzb+2*nguard*k3d))
-  parameter(len_block_bndy=2*(nxb+2*nguard*k2d)*                    &
-       &                                 (nzb+2*nguard*k3d))
-  parameter(len_block_bndz=2*(nxb+2*nguard)*(nyb+2*nguard))
-!
-  integer len_block_ex,len_block_ey,len_block_ez
-  parameter(len_block_ex=2*(nyb+k2d+2*nguard*k2d)*                  &
-       &                                 (nzb+k3d+2*nguard*k3d))
-  parameter(len_block_ey=2*(nxb+1+2*nguard)*                        &
-       &                                 (nzb+k3d+2*nguard*k3d))
-  parameter(len_block_ez=2*(nxb+1+2*nguard)*                        &
-       &                                 (nyb+k2d+2*nguard))
-  
+!#endif
+!!
+!!
+!#if N_DIM == 2
+!  real, target ::                                                   &
+!       flux_x(nfluxes,1:2,jl_bnd:ju_bnd,kl_bnd:ku_bnd,maxblocksfl), &
+!       flux_y(nfluxes,il_bnd:iu_bnd,1:2,kl_bnd:ku_bnd,maxblocksfl), &
+!       flux_z(nfluxes,il_bnd:iu_bnd,jl_bnd:ju_bnd,1:2,1)
+!  
+!!
+!  real, target ::                                                    &
+!       tflux_x(nfluxes,1:2,jl_bnd:ju_bnd,kl_bnd:ku_bnd,maxblocksfl), &
+!       tflux_y(nfluxes,il_bnd:iu_bnd,1:2,kl_bnd:ku_bnd,maxblocksfl), &
+!       tflux_z(nfluxes,il_bnd:iu_bnd,jl_bnd:ju_bnd,1:2,1)
+!#endif
+!!
+!!
+!#if N_DIM == 3
+!  real, target ::                                                  &
+!       flux_x(nfluxes,1:2,jl_bnd:ju_bnd,kl_bnd:ku_bnd,maxblocksfl),&
+!       flux_y(nfluxes,il_bnd:iu_bnd,1:2,kl_bnd:ku_bnd,maxblocksfl),&
+!       flux_z(nfluxes,il_bnd:iu_bnd,jl_bnd:ju_bnd,1:2,maxblocksfl)
+!!
+!  real, target ::                                                    &
+!       tflux_x(nfluxes,1:2,jl_bnd:ju_bnd,kl_bnd:ku_bnd,maxblocksfl), &
+!       tflux_y(nfluxes,il_bnd:iu_bnd,1:2,kl_bnd:ku_bnd,maxblocksfl), &
+!       tflux_z(nfluxes,il_bnd:iu_bnd,jl_bnd:ju_bnd,1:2,maxblocksfl)
+!#endif
+!!
+!!
+!!
+!! storage used for cell edges at block boundaries. 
+!! This is used when quantities located at cell edge centers need to
+!! be used consistently at the boundaries between blocks at different
+!! refinement levels.
+!!
+!  integer nedgevar
+!  parameter(nedgevar=1)                                     !<<< USER EDIT
+!!
+!  integer nedges
+!  parameter(nedges=max(1,nedgevar))
+!!
+!  integer maxblockse
+!  parameter(maxblockse= 1+(maxblocks-1)*min(1,nedgevar) )
+!!
+!!
+!!..flash does not presently use these edge storage variables
+!!..but it might when magnetic fields are included. until then,
+!!..the maxblockse size declaration has been replaced with 1 in order
+!!..to reduce the memory footprint.
+!!
+!!      common/edges/
+!!     .  bedge_facex_y(nedges,1:2,jl_bnd:ju_bnd+1,
+!!     .    kl_bnd:ku_bnd+1,maxblockse),
+!!     .  bedge_facex_z(nedges,1:2,jl_bnd:ju_bnd+1,
+!!     .    kl_bnd:ku_bnd+1,maxblockse),
+!!     .  bedge_facey_x(nedges,il_bnd:iu_bnd+1,1:2,
+!!     .    kl_bnd:ku_bnd+1,maxblockse),
+!!     .  bedge_facey_z(nedges,il_bnd:iu_bnd+1,1:2,
+!!     .    kl_bnd:ku_bnd+1,maxblockse),
+!!     .  bedge_facez_x(nedges,il_bnd:iu_bnd+1,jl_bnd:ju_bnd+1,
+!!     .    1:2,maxblockse),
+!!     .  bedge_facez_y(nedges,il_bnd:iu_bnd+1,jl_bnd:ju_bnd+1,
+!!     .    1:2,maxblockse),
+!!
+!!
+!  real ::                                                         &
+!       &  bedge_facex_y(nedges,1:2,jl_bnd:ju_bnd+1,                       &
+!       &    kl_bnd:ku_bnd+1,1),                                           &
+!       &  bedge_facex_z(nedges,1:2,jl_bnd:ju_bnd+1,                       &
+!       &    kl_bnd:ku_bnd+1,1),                                           &
+!       &  bedge_facey_x(nedges,il_bnd:iu_bnd+1,1:2,                       &
+!       &    kl_bnd:ku_bnd+1,1),                                           &
+!       &  bedge_facey_z(nedges,il_bnd:iu_bnd+1,1:2,                       &
+!       &    kl_bnd:ku_bnd+1,1),                                           &
+!       &  bedge_facez_x(nedges,il_bnd:iu_bnd+1,jl_bnd:ju_bnd+1,           &
+!       &    1:2,1),                                                       &
+!       &  bedge_facez_y(nedges,il_bnd:iu_bnd+1,jl_bnd:ju_bnd+1,           &
+!       &    1:2,1),                                                       &
+!       &  recvarx1e(nedges,1:2,jl_bnd:ju_bnd+1,kl_bnd:ku_bnd+1),          &
+!       &  recvary1e(nedges,il_bnd:iu_bnd+1,1:2,kl_bnd:ku_bnd+1),          &
+!       &  recvarz1e(nedges,il_bnd:iu_bnd+1,jl_bnd:ju_bnd+1,1:2),          &
+!       &  recvarx2e(nedges,1:2,jl_bnd:ju_bnd+1,kl_bnd:ku_bnd+1),          &
+!       &  recvary2e(nedges,il_bnd:iu_bnd+1,1:2,kl_bnd:ku_bnd+1),          &
+!       &  recvarz2e(nedges,il_bnd:iu_bnd+1,jl_bnd:ju_bnd+1,1:2)
+!!
+!!
+!!..flash does not presently use these edge storage variables
+!!..but it might when mhd is added in.
+!!..the maxblockse size declaration has been reduced to 1 in order
+!!..to help reduce the memory footprint.
+!!..28nov99 fxt
+!!
+!!
+!!      common/tedges/
+!!     .  tbedge_facex_y(nedges,1:2,jl_bnd:ju_bnd+1,
+!!     .    kl_bnd:ku_bnd+1,maxblockse),
+!!     .  tbedge_facex_z(nedges,1:2,jl_bnd:ju_bnd+1,
+!!     .    kl_bnd:ku_bnd+1,maxblockse),
+!!     .  tbedge_facey_x(nedges,il_bnd:iu_bnd+1,1:2,
+!!     .    kl_bnd:ku_bnd+1,maxblockse),
+!!     .  tbedge_facey_z(nedges,il_bnd:iu_bnd+1,1:2,
+!!     .    kl_bnd:ku_bnd+1,maxblockse),
+!!     .  tbedge_facez_x(nedges,il_bnd:iu_bnd+1,jl_bnd:ju_bnd+1,
+!!     .    1:2,maxblockse),
+!!     .  tbedge_facez_y(nedges,il_bnd:iu_bnd+1,jl_bnd:ju_bnd+1,
+!!     .    1:2,maxblockse)
+!!
+!  real ::                                                         &
+!       &  tbedge_facex_y(nedges,1:2,jl_bnd:ju_bnd+1,                      &
+!       &    kl_bnd:ku_bnd+1,1),                                           &
+!       &  tbedge_facex_z(nedges,1:2,jl_bnd:ju_bnd+1,                      &
+!       &    kl_bnd:ku_bnd+1,1),                                           &
+!       &  tbedge_facey_x(nedges,il_bnd:iu_bnd+1,1:2,                      &
+!       &    kl_bnd:ku_bnd+1,1),                                           &
+!       &  tbedge_facey_z(nedges,il_bnd:iu_bnd+1,1:2,                      &
+!       &    kl_bnd:ku_bnd+1,1),                                           &
+!       &  tbedge_facez_x(nedges,il_bnd:iu_bnd+1,jl_bnd:ju_bnd+1,          &
+!       &    1:2,1),                                                       &
+!       &  tbedge_facez_y(nedges,il_bnd:iu_bnd+1,jl_bnd:ju_bnd+1,          &
+!       &    1:2,1)
+!!
+!!
+!!
+!! workspace arrays used for inter-block communications
+!  integer nbndmax
+!  parameter(nbndmax=max(nbndvar,nfluxes))
+!  real ::                                                         &
+!       &     recvarx1(nbndmax,1:2,jl_bnd:ju_bnd,kl_bnd:ku_bnd)            &
+!       &    ,recvary1(nbndmax,il_bnd:iu_bnd,1:2,kl_bnd:ku_bnd)            &
+!       &    ,recvarz1(nbndmax,il_bnd:iu_bnd,jl_bnd:ju_bnd,1:2)            &
+!       &    ,bndtempx1(nfluxes,1:2,jl_bnd:ju_bnd,kl_bnd:ku_bnd)           &
+!       &    ,bndtempy1(nfluxes,il_bnd:iu_bnd,1:2,kl_bnd:ku_bnd)           &
+!       &    ,bndtempz1(nfluxes,il_bnd:iu_bnd,jl_bnd:ju_bnd,1:2)
+!  
+!!
+!!
+!!
+!!
+!! parameters used in communication calls
+!  integer len_block_bndx,len_block_bndy,len_block_bndz
+!  parameter(len_block_bndx=2*(nyb+2*nguard*k2d)*                    &
+!       &                                 (nzb+2*nguard*k3d))
+!  parameter(len_block_bndy=2*(nxb+2*nguard*k2d)*                    &
+!       &                                 (nzb+2*nguard*k3d))
+!  parameter(len_block_bndz=2*(nxb+2*nguard)*(nyb+2*nguard))
+!!
+!  integer len_block_ex,len_block_ey,len_block_ez
+!  parameter(len_block_ex=2*(nyb+k2d+2*nguard*k2d)*                  &
+!       &                                 (nzb+k3d+2*nguard*k3d))
+!  parameter(len_block_ey=2*(nxb+1+2*nguard)*                        &
+!       &                                 (nzb+k3d+2*nguard*k3d))
+!  parameter(len_block_ez=2*(nxb+1+2*nguard)*                        &
+!       &                                 (nyb+k2d+2*nguard))
+!  
 
 end module mo_parameters 
 

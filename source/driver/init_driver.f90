@@ -9,8 +9,8 @@ subroutine init_driver
    call init_grid
    call init_database
    call init_hydro
-   call init_io
    call init_domain
+   call init_io
    !!
    !write(*,*) '----- Driver_init_nerd done--------'
    !

@@ -3,7 +3,7 @@
 !
 module mo_grid
    !
-   use mo_parameters, only: nguard, ndim, k2d, k3d
+   !use mo_parameters, only: nguard, ndim, k2d, k3d
    !
    implicit none
    !
