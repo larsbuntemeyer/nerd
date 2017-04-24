@@ -1,6 +1,6 @@
 
 # name of the exectuable
-EXE       = preproc
+EXE       = nerd
 
 # compiler
 FCOMP      = ifort
@@ -20,7 +20,7 @@ F90FLAGS   = -free
 F77FLAGS   = -fixed
 
 # general fortran compiler flags
-FFLAGS_OPT = -c -convert big_endian -r8 -fpp $(NCINCLUDE) #-check all -debug all -traceback 
+FFLAGS_OPT = -c -O3 -convert big_endian -r8 -fpp $(NCINCLUDE) #-check all -debug all -traceback 
 
 # linker flags
 LFLAGS_OPT = $(NCLIBS) -o 

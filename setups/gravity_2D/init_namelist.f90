@@ -16,17 +16,17 @@ subroutine init_namelist
    zmax=0.0
    !
    cfl = 0.8
-   dtmin = 1.d-10
-   dtmax = 5.e-2
+   dtmin = 0.05
+   dtmax = 0.05
    t_max = 1000.0 !0.1
-   dtini = 1.e-5
+   dtini = 0.05
    n_max = 100000
    gamma = 7.d0/5.d0
    mu_mol = 1.0
    !
-   output_interval = 10
+   output_interval = 20
    !
-   fl  = 'donor-cell'
+   fl  = 'superbee'
    !
    write(*,*) '----- Runtime_parameters_init done-'
    !

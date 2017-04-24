@@ -22,7 +22,7 @@ subroutine hydro3D(dt)
       real, dimension(nvar,ibg:ieg  ,jbg:jeg  ,kbg:keg  ) :: dq
       !
       real :: rho,ei,ekin,vtot2,dp,dx,dy,dz,rhoinv
-      real :: fx,fy,fz,accl
+      real :: fx,fy,fz,accl,dts,idt
       !
       integer :: i,j,k,ivar
       !

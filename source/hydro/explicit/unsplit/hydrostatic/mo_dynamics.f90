@@ -3,10 +3,9 @@
 !
 MODULE MO_DYNAMICS
 USE mo_grid,      only: iah=>ib, ieh=>ie, jah=>jb, jeh=>je, iaa=>ibg, iea=>ieg, &
-                        ke=>nz, ke1=>nz1
-USE mo_driver,    only: nnow, nold, nold2, nnow2 
-USE mo_constants,         ONLY: R, RERD=>r_earth, wcpr 
-USE MO_HIGKON,            ONLY: ed2dt, eddphi, eddlam, edadphi, RDDRM1
+                        ke=>nz, ke1=>nz1, eddlam, edadphi, eddphi
+USE mo_driver,    only: nnow, nold, nold2, nnow2, ed2dt 
+USE mo_constants,         ONLY: R, RERD=>r_earth, wcpr, RDDRM1
 USE MO_MEMORY_EC4,        ONLY: CPHI, A1T, A2T, TG, ACPHIR, VVFH, HYDRODP, FC, &
                                 ETAS, BK 
 USE MO_MEMORY_MAIN,       ONLY: T, QD, QW, QI, DWDT, TMCH, FIB, QDB, U, V,   &

@@ -34,6 +34,7 @@ do while(current_time<t_max)
    dt = cfl*minval(dx/((abs(u))))
    !if(ndim>1) dt = min(dt,cfl*dy/(maxval(abs(u))))
    if(dt.gt.dtmax) dt = dtmax
+   if(dt.lt.dtmin) dt = dtmin
    !
    if(mod(step,output_interval)==0) then
       write(*,*) '-------- writing to file ----------'

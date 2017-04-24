@@ -4,7 +4,7 @@ implicit none
 
 integer   :: step
 real      :: current_time
-real      :: dt
+real      :: dt,dt2,ed2dt
 integer   :: nold, nnow, nnew
 integer   :: nold2, nnow2
 

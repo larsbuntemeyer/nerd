@@ -17,6 +17,8 @@ module mo_grid
    integer,          save :: ibg,jbg,kbg
    integer,          save :: ieg,jeg,keg
    real, save :: dx,dy,dz
+   REAL    ::          EDDLAM , EDDPHI , EDADPHI, DLADDPH, DPHDDLA
+   real    :: dlam,dphi
    !
    !  The cell coordinates
    !  c: center coordinate of the cell
@@ -32,7 +34,8 @@ module mo_grid
    real, dimension(:),      allocatable :: xrCoord
    real, dimension(:),      allocatable :: yrCoord
    real, dimension(:),      allocatable :: zrCoord
-!
-!
-!
+   !
+   !
+   !
+   !
 end module mo_grid

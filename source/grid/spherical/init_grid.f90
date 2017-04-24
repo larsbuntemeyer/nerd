@@ -4,6 +4,7 @@ subroutine init_grid
    use mo_grid
    use mo_namelist
    use mo_parameters 
+   use mo_constants
    !
    !
    implicit none
@@ -90,6 +91,14 @@ subroutine init_grid
    dx = (xmax-xmin)/nx
    dy = (ymax-ymin)/ny
    dz = (zmax-zmin)/nz
+   !
+   dlam = dx
+   dphi = dy 
+   EDDLAM  =   1.0/(DLAM*PI/180.0)
+   EDDPHI  =   1.0/(DPHI*PI/180.0)
+   EDADPHI =   EDDPHI/R_EARTH
+   DLADDPH =   DLAM/DPHI
+   DPHDDLA =   DPHI/DLAM
    !
    write(*,*) 'dx:', dx
    write(*,*) 'dy:', dy
