@@ -2,13 +2,11 @@
 !
 !
 MODULE MO_DYNAMICS
-USE MO_ORG,               ONLY: iah, ieh, jah, jeh, na,nnow=>nj, nnow2=>nj2,     &
-                                nold=>na, nold2=>na2, lptop0, iaa, iea 
-USE MO_COMDYN,            ONLY: LHDIFF2
-USE MO_PHYKON,            ONLY: R, RERD 
-USE MO_PARKON,            ONLY: AKS2, AKS4
-USE MO_PARORG,            ONLY: KE, KE1, NEIGHBOR
-USE MO_HIGKON,            ONLY: wcpr, ed2dt, eddphi, eddlam, edadphi, RDDRM1
+USE mo_grid,      only: iah=>ib, ieh=>ie, jah=>jb, jeh=>je, iaa=>ibg, iea=>ieg, &
+                        ke=>nz, ke1=>nz1
+USE mo_driver,    only: nnow, nold, nold2, nnow2 
+USE mo_constants,         ONLY: R, RERD=>r_earth, wcpr 
+USE MO_HIGKON,            ONLY: ed2dt, eddphi, eddlam, edadphi, RDDRM1
 USE MO_MEMORY_EC4,        ONLY: CPHI, A1T, A2T, TG, ACPHIR, VVFH, HYDRODP, FC, &
                                 ETAS, BK 
 USE MO_MEMORY_MAIN,       ONLY: T, QD, QW, QI, DWDT, TMCH, FIB, QDB, U, V,   &
@@ -62,6 +60,8 @@ INTEGER :: JM2, JM3, JM4, JN5, JO2, JO3, JO4, JO5, JS4, JS5, JSP, JU3, JU4, JM5
 INTEGER :: JU5, JZM, JZN, JZO, JZS, JZU
 REAL    :: ZX2, ZA1A, ZA2A, ZALOG2, Z4DRERD
 !
+!
+REAL :: LHDIFF2, LPTOP0, AKS2, AKS4
 !
 !
 INTERFACE diffuse_horizontal_sigma

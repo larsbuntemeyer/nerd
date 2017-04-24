@@ -9,6 +9,7 @@ module mo_grid
    !
    !integer,          save :: ndim
    integer,          save :: nx,ny,nz
+   integer,          save :: nz1
    !integer,          save :: k2d,k3d 
    !integer,          save :: nguard
    integer,          save :: ib,jb,kb

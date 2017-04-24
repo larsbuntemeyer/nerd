@@ -8,7 +8,6 @@ subroutine eos
    !
    implicit none
    integer :: i,j,k
-   real, parameter :: R=287.05
    !
    do k=kb,ke
       do j=jb,je

@@ -15,7 +15,6 @@ subroutine init_domain
    real    :: rho_in,rho_out,eint_in,eint_out,pres_in,pres_out
    real    :: ek,ei,e, radius
    integer,parameter :: seed = 86456
-   real, parameter :: R=287.05
    !
    real    :: rho_left,rho_right, eint_env
    real    :: vx_left,vx_right, p,pt,ps, dp, rho_t
