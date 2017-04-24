@@ -35,7 +35,9 @@ module mo_grid
    real, dimension(:),      allocatable :: yrCoord
    real, dimension(:),      allocatable :: zrCoord
    !
+   REAL, ALLOCATABLE, DIMENSION(:,:),     TARGET :: GCPHI, GACPHIR, ACPHIR, CPHI  
    !
+   REAL, ALLOCATABLE, DIMENSION(:),       TARGET :: AK, BK, AKH, BKH, DAK, DBK, A1T, A2T, VVFH
    !
    !
 end module mo_grid

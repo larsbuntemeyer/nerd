@@ -8,7 +8,7 @@ USE mo_driver,    only: nnow, nold, nold2, nnow2, ed2dt
 USE mo_constants,         ONLY: R, RERD=>r_earth, wcpr, RDDRM1
 USE MO_MEMORY_EC4,        ONLY: CPHI, A1T, A2T, TG, ACPHIR, VVFH, HYDRODP, FC, &
                                 ETAS, BK 
-USE MO_MEMORY_MAIN,       ONLY: T, QD, QW, QI, DWDT, TMCH, FIB, QDB, U, V,   &
+USE mo_database,       ONLY: T, QD, QW, QI, DWDT, TMCH, FIB, QDB, U=>UX, V=>UY,   &
                                 PINT, FI
 !USE MO_MEMORY_DYNAMICS,   ONLY: ZEDDPQ, ZDP, ZEDDPQINT, ZDPINT, ZGV,         &
 !                                ZTADV, ZQDADV, ZGU, ZPLAM, ZPPHI, ZTV,       &

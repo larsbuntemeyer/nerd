@@ -23,6 +23,20 @@ module mo_database
    real, dimension(:,:,:), allocatable :: vf
    real, dimension(:,:,:), allocatable :: wf
    !
+   real, dimension(:,:,:,:), allocatable :: t 
+   real, dimension(:,:,:,:), allocatable :: ux
+   real, dimension(:,:,:,:), allocatable :: uy
+   real, dimension(:,:,:,:), allocatable :: uz
+   real, dimension(:,:,:,:), allocatable :: qd
+   real, dimension(:,:,:,:), allocatable :: qw
+   real, dimension(:,:,:,:), allocatable :: qi
+   real, dimension(:,:,:,:), allocatable :: dwdt
+   real, dimension(:,:,:,:), allocatable :: tmch
+   real, dimension(:,:,:,:), allocatable :: fi
+   real, dimension(:,:,:,:), allocatable :: fib
+   real, dimension(:,:,:,:), allocatable :: qdb
+   real, dimension(:,:,:,:), allocatable :: pint
+
    !
    !--------------------------------------------------------
 end module mo_database

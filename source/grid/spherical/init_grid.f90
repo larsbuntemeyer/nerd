@@ -72,6 +72,15 @@ subroutine init_grid
    allocate(xrCoord(ibg:ieg))
    allocate(yrCoord(jbg:jeg))
    allocate(zrCoord(kbg:keg))
+   ALLOCATE(GCPHI(ny,2))
+   ALLOCATE(GACPHIR(ny,2))
+   ALLOCATE(ACPHIR(ny,2))
+   ALLOCATE(CPHI(ny,2)) 
+   ALLOCATE(A1T(nz1), A2T(nz1))
+   ALLOCATE(AK(nz1), BK(nz1))
+   ALLOCATE(AKH(nz), BKH(nz))
+   ALLOCATE(DAK(nz), DBK(nz))
+   ALLOCATE(VVFH(nz))
    !
    !  inititialize the grid
    !
