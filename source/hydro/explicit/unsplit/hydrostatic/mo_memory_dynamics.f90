@@ -1,7 +1,7 @@
 
 MODULE mo_memory_dynamics
 
-USE MO_PARORG, ONLY: IE,JE,KE,KE1
+USE mo_grid, ONLY: IE=>nx,JE=>ny,KE=>nz
 
 IMPLICIT NONE
 
@@ -97,8 +97,9 @@ CONTAINS
 
 SUBROUTINE allocate_dynamics
 IMPLICIT NONE
-INTEGER :: NJ
+INTEGER :: NJ,KE1
 NJ = 1
+KE=KE+1
       ALLOCATE (ZQITS(IE,KE  ), ZLAPQI(IE,KE,NJ+2), ZQIDIH(IE,KE) )
       ALLOCATE (PSDT(IE) )
       ALLOCATE (ZTPA(IE,JE,KE), ZGQD (IE,KE,NJ+2),                      &
