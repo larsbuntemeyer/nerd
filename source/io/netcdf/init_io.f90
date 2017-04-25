@@ -31,10 +31,10 @@ call check( nf90_def_dim(ncid, 'time', NF90_UNLIMITED, rec_dimid) )
 ! since coordinate variables only have one dimension, we can
 ! simply provide the address of that dimension ID (lat_dimid) and
 ! similarly for (lon_dimid).
-call check( nf90_def_var(ncid, 'x', NF90_REAL, x_dimid, x_varid) )
-if(ndim>1)  call check( nf90_def_var(ncid, 'y', NF90_REAL, y_dimid, y_varid) )
-if(ndim==3) call check( nf90_def_var(ncid, 'z', NF90_REAL, z_dimid, z_varid) )
-call check( nf90_def_var(ncid, 'time', NF90_REAL, rec_dimid, rec_varid) )
+call check( nf90_def_var(ncid, 'x', NF90_DOUBLE, x_dimid, x_varid) )
+if(ndim>1)  call check( nf90_def_var(ncid, 'y', NF90_DOUBLE, y_dimid, y_varid) )
+if(ndim==3) call check( nf90_def_var(ncid, 'z', NF90_DOUBLE, z_dimid, z_varid) )
+call check( nf90_def_var(ncid, 'time', NF90_DOUBLE, rec_dimid, rec_varid) )
 
 ! The dimids array is used to pass the dimids of the dimensions of
 ! the netCDF variables. Both of the netCDF variables we are creating
@@ -66,6 +66,8 @@ count = (/ nx, ny, nz, 1 /)
 call check( nf90_put_var(ncid, x_varid, xcCoord(ib:ie)) )
 if(ndim>1)  call check( nf90_put_var(ncid, y_varid, ycCoord(jb:je)) )
 if(ndim==3) call check( nf90_put_var(ncid, z_varid, zcCoord(kb:ke)) )
+
+call check( nf90_close(ncid) )
 !
 call io_write_to_file
 !

@@ -9,11 +9,11 @@ subroutine init_namelist
    write(*,*) 'initializing runtime parameters'
    !
    xmin=-10.
-   ymin=0.0
-   zmin=0.0
+   ymin=-10.
+   zmin=0.
    xmax=10.0
-   ymax=6000.0
-   zmax=0.0
+   ymax=10.0
+   zmax=10.0
    !
    cfl = 0.8
    dtmin = 1.d-10
@@ -30,6 +30,11 @@ subroutine init_namelist
    fl  = 'donor-cell'
    !
    akbk_file = 'akbk_bubble2.txt'
+   !
+   lptop0 = .TRUE.
+   lhdiff2 = .TRUE.
+   laistep = .FALSE.
+   ldivdamp = .TRUE.
    !
    write(*,*) '----- Runtime_parameters_init done-'
    !
