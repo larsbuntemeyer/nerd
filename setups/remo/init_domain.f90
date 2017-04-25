@@ -62,34 +62,34 @@ subroutine init_domain
          enddo
       enddo
    enddo
-   do k=kb,ke
-      do j=je-1,jb,-1
-         do i=ib,ie
-            !
-            distance = (xcCoord(i) - xctr)**2 
-            if(ndim>1) then 
-               distance = distance + (ycCoord(j) - yctr)**2 
-            endif
-            if(ndim==3) then 
-               distance = distance + (zcCoord(k) - zctr)**2 
-            endif
-            !
-            distance = sqrt(distance)
-            !
-            if(distance < radius) then
-              dens(i,j,k) = dens(i,j,k)*1.1
-              !pres(i,j,k) = dens(i,j,k)*(R*300.0)
-              eint(i,j,k) = pres(i,j,k)/(dens(i,j,k)*(gamma-1.0))
-            endif
-            u(i,j,k) = 0.
-            v(i,j,k) = 0.
-            w(i,j,k) = 0.
-            ek = 0.5*(u(i,j,k)**2+v(i,j,k)**2+w(i,j,k)**2)
-            ener(i,j,k) = eint(i,j,k) + ek
-            !
-         enddo
-      enddo
-   enddo
+   !do k=kb,ke
+   !   do j=je-1,jb,-1
+   !      do i=ib,ie
+   !         !
+   !         distance = (xcCoord(i) - xctr)**2 
+   !         if(ndim>1) then 
+   !            distance = distance + (ycCoord(j) - yctr)**2 
+   !         endif
+   !         if(ndim==3) then 
+   !            distance = distance + (zcCoord(k) - zctr)**2 
+   !         endif
+   !         !
+   !         distance = sqrt(distance)
+   !         !
+   !         if(distance < radius) then
+   !           dens(i,j,k) = dens(i,j,k)*1.1
+   !           !pres(i,j,k) = dens(i,j,k)*(R*300.0)
+   !           eint(i,j,k) = pres(i,j,k)/(dens(i,j,k)*(gamma-1.0))
+   !         endif
+   !         u(i,j,k) = 0.
+   !         v(i,j,k) = 0.
+   !         w(i,j,k) = 0.
+   !         ek = 0.5*(u(i,j,k)**2+v(i,j,k)**2+w(i,j,k)**2)
+   !         ener(i,j,k) = eint(i,j,k) + ek
+   !         !
+   !      enddo
+   !   enddo
+   !enddo
    !
    write(*,*) '----- init_domain done ------------'
    !

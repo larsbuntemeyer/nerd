@@ -1051,7 +1051,7 @@ def linkFiles(fromdir, prevSrcFileList, opts, sourceDir):
     Note: if blah.c is in fromdir and blah.F90 is in the current directory,
     blah.F90 gets deleted. Same thing for other groups of extensions."""
     GROUPS = [['.f90', '.F90', '.c', '.f', '.F', '.C', '.inc', '.a'],
-                 '.py', '.fh', '.h', '_A', '.dek', '.dat', '.out', '.int', '.csh', '.rates', '.plt', '.out']
+                 '.py', '.fh', '.h', '_A', '.dek', '.dat', '.out', '.int', '.csh', '.rates', '.plt', '.out', '.txt']
     #put extensions that aren't grouped into a one-item list (save typing)
     GROUPS = map(lambda x: (type(x)==types.ListType and [x] or [[x]])[0],
                  GROUPS) 

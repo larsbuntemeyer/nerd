@@ -12,7 +12,6 @@ integer :: nsp
 !
 write(*,*) '----- Driver_evolve_nerd ----------'
 !
-!
 current_time = 0.d0
 step = 0
 dt = dtini
@@ -22,6 +21,7 @@ dtdeh = dt/3600.0
 !
 nold = 3; nnow=1; nnew = 2
 nold2 = 2; nnow2 = 1;
+!
 !
 do while(current_time<t_max)
    !
@@ -35,7 +35,7 @@ do while(current_time<t_max)
    !
    call eos
    ! 
-   call hydro_solve(dt)
+   !call hydro_solve(dt)
    !
    current_time = current_time + dt  
    step         = step+1

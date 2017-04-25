@@ -20,7 +20,8 @@ F90FLAGS   = -free
 F77FLAGS   = -fixed
 
 # general fortran compiler flags
-FFLAGS_OPT = -c -O3 -convert big_endian -r8 -fpp $(NCINCLUDE) #-check all -debug all -traceback 
+#FFLAGS_OPT = -c -O3 -convert big_endian -r8 -fpp $(NCINCLUDE) #-check all -debug all -traceback 
+FFLAGS_OPT = -c -fpp -check all -debug all -traceback $(NCINCLUDE) 
 
 # linker flags
 LFLAGS_OPT = $(NCLIBS) -o 

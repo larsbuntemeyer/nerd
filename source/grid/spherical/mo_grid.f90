@@ -7,18 +7,17 @@ module mo_grid
    !
    implicit none
    !
-   !integer,          save :: ndim
    integer,          save :: nx,ny,nz
    integer,          save :: nz1,nxny
-   !integer,          save :: k2d,k3d 
-   !integer,          save :: nguard
    integer,          save :: ib,jb,kb
    integer,          save :: ie,je,ke
    integer,          save :: ibg,jbg,kbg
    integer,          save :: ieg,jeg,keg
-   real, save :: dx,dy,dz
-   REAL    ::          EDDLAM , EDDPHI , EDADPHI, DLADDPH, DPHDDLA
-   real    :: dlam,dphi
+   real,              save :: dx,dy,dz
+   real                    :: EDDLAM, EDDPHI
+   real                    :: EDADPHI
+   real                    :: DLADDPH, DPHDDLA
+   real                    :: dlam,dphi
    !
    !  The cell coordinates
    !  c: center coordinate of the cell
@@ -37,9 +36,9 @@ module mo_grid
    !
    REAL, ALLOCATABLE, DIMENSION(:,:) :: GCPHI, GACPHIR, ACPHIR, CPHI  
    !
-   REAL, ALLOCATABLE, DIMENSION(:)   :: AK, BK, AKH, BKH, DAK, DBK, A1T, A2T, VVFH
+   REAL, ALLOCATABLE, DIMENSION(:)   :: AK, BK, AKH, BKH, DAK
+   REAL, ALLOCATABLE, DIMENSION(:)   :: DBK, A1T, A2T, VVFH, LVL, LVL2
    !
    real :: ptop
-   !
    !
 end module mo_grid

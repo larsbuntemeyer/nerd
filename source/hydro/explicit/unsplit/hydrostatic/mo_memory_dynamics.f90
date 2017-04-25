@@ -99,7 +99,7 @@ SUBROUTINE allocate_dynamics
 IMPLICIT NONE
 INTEGER :: NJ,KE1
 NJ = 1
-KE=KE+1
+KE1=KE+1
       ALLOCATE (ZQITS(IE,KE  ), ZLAPQI(IE,KE,NJ+2), ZQIDIH(IE,KE) )
       ALLOCATE (PSDT(IE) )
       ALLOCATE (ZTPA(IE,JE,KE), ZGQD (IE,KE,NJ+2),                      &

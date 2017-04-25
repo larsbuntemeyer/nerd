@@ -16,7 +16,7 @@ subroutine init_grid
    nx      = nxb 
    ny      = nyb
    nz      = nzb
-   nz1     = nzb+1
+   nz1     = nzb+k3d
    nxny    = nx*ny
    !k2d     = 0
    !k3d     = 0
@@ -74,15 +74,17 @@ subroutine init_grid
    allocate(xrCoord(ibg:ieg))
    allocate(yrCoord(jbg:jeg))
    allocate(zrCoord(kbg:keg))
-   allocate(GCPHI(ny,2))
-   ALLOCATE(GACPHIR(ny,2))
-   ALLOCATE(ACPHIR(ny,2))
-   ALLOCATE(CPHI(ny,2)) 
+   allocate(GCPHI(ny+2*k2d*nguard,2))
+   ALLOCATE(GACPHIR(ny+2*k2d*nguard,2))
+   ALLOCATE(ACPHIR(ny+2*k2d*nguard,2))
+   ALLOCATE(CPHI(ny+2*k2d*nguard,2)) 
    ALLOCATE(A1T(nz1), A2T(nz1))
    ALLOCATE(AK(nz1), BK(nz1))
    ALLOCATE(AKH(nz), BKH(nz))
    ALLOCATE(DAK(nz), DBK(nz))
    ALLOCATE(VVFH(nz))
+   ALLOCATE(LVL(nz))
+   ALLOCATE(LVL2(nz1))
    !
    !  inititialize the grid
    !
@@ -160,6 +162,8 @@ subroutine init_grid
       GACPHIR(J,1) = 1.0/(RERD*GCPHI(J,1))
       GACPHIR(J,2) = 1.0/(RERD*GCPHI(J,2))
    ENDDO
+   !
+   call read_akbk
    !
    write(*,*) '----- Grid_init done --------------'
    !

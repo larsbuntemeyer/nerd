@@ -35,4 +35,6 @@ module mo_namelist
    logical     :: laistep
    logical     :: ldivdamp
    !
+   character(256) :: akbk_file
+   !
 end module mo_namelist
