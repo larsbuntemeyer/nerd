@@ -15,7 +15,8 @@ subroutine init_grid
    nx      = nxb 
    ny      = nyb
    nz      = nzb
-   nz      = nzb+1
+   nz1     = nzb+1
+   nxny    = nx*ny
    !k2d     = 0
    !k3d     = 0
    !nguard  = 2

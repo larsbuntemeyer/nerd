@@ -4,5 +4,4 @@ REQUIRES eos
 REQUIRES io/netcdf
 REQUIRES hydro/explicit/unsplit/hydrostatic
 REQUIRES grid/spherical/hybrid-sigma
-#REQUIRES hydro/explicit/split
 

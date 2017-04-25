@@ -9,7 +9,7 @@ module mo_grid
    !
    !integer,          save :: ndim
    integer,          save :: nx,ny,nz
-   integer,          save :: nz1
+   integer,          save :: nz1,nxny
    !integer,          save :: k2d,k3d 
    !integer,          save :: nguard
    integer,          save :: ib,jb,kb
@@ -35,9 +35,11 @@ module mo_grid
    real, dimension(:),      allocatable :: yrCoord
    real, dimension(:),      allocatable :: zrCoord
    !
-   REAL, ALLOCATABLE, DIMENSION(:,:),     TARGET :: GCPHI, GACPHIR, ACPHIR, CPHI  
+   REAL, ALLOCATABLE, DIMENSION(:,:) :: GCPHI, GACPHIR, ACPHIR, CPHI  
    !
-   REAL, ALLOCATABLE, DIMENSION(:),       TARGET :: AK, BK, AKH, BKH, DAK, DBK, A1T, A2T, VVFH
+   REAL, ALLOCATABLE, DIMENSION(:)   :: AK, BK, AKH, BKH, DAK, DBK, A1T, A2T, VVFH
+   !
+   real :: ptop
    !
    !
 end module mo_grid

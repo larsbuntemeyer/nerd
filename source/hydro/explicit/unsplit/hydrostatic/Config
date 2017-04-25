@@ -9,4 +9,5 @@
 
 REQUIRES grid/spherical/hybrid-sigma
 REQUIRES driver/leapfrog
+REQUIRES physics/magnus 
 

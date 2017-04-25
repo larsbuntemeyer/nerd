@@ -23,6 +23,7 @@ subroutine init_namelist
    n_max = 100000
    gamma = 7.d0/5.d0
    mu_mol = 1.0
+   lptop0 = .false.
    !
    output_interval = 10
    !

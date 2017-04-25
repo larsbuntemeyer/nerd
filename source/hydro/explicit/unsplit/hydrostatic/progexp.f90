@@ -11,8 +11,7 @@ SUBROUTINE PROGEXP                                                 &
 !     |        |        |
 !     v        v        v
 (ZOM850M, ZOM500M, ZOM300M,                                     &
- AK    , BK    , A1T    ,                                       &
- A2T   , VVFH  , FIB    , FC     , ACPHIR , CPHI , PS    ,      &
+  FIB    , FC     , PS    ,      &
  TGL   , TGW   , TGI    , QDBL   , QDBW   , QDBI , BFLHSL,      &
  BFLHSW, BFLHSI, BFLQDSL, BFLQDSW, BFLQDSI, TG   , QDB   ,      &
  BFLHS , BFLQDS, BFLUS  , BFLVS  , U      , V    , T     ,      &
@@ -54,20 +53,25 @@ SUBROUTINE PROGEXP                                                 &
 !**   HANDLUNG :      ---
 !**   VERFASSER:   G. DOMS UND D. MAJEWSKI
 !
-USE MO_PARORG,               ONLY:   JE, IEKE, NEIGHBOR
-USE MO_ORG,                  ONLY:   LAISTEP, IAA, IEA, NJ, JAH,       &
-                                     LPTOP0, IEH, NA, NA2, NE,          &
-                                     IAV, IEV, NJ2, IAH, JEH, IEU,      &
-                                     PTOP, IAU, JEV, IEHGG, JEHGG,      &
-                                     IAHGG, JAHGG                        
-USE MO_COMDYN,               ONLY:   ALCNVA, VBMXV, VBCFL,              &
-                                     LDIVDAMP, LHDIFF2                   
-USE MO_PHYKON,               ONLY:   R, RERD, WCP, WLK, WLS              
-USE MO_HIGKON,               ONLY:   ED2DT, EDDPHI, RDDRM1, WCPR,       &
-                                     EDDLAM, EDADPHI, DT2, EDG,         &
-                                     DTDEH, RDRD, EMRDRD                 
-USE MO_PROGCHK,              ONLY:   KFL850, KFL500, KFL300              
-USE MO_FAKTINF,              ONLY:   EDFAKINF                            
+USE mo_grid,                 ONLY:   JE=>ny, IEKE=>nxny, ptop
+USE mo_grid,      only: iah=>ib, ieh=>ie, jah=>jb, jeh=>je, iaa=>ibg, iea=>ieg, &
+                        ke=>nz, ke1=>nz1, eddlam, edadphi, eddphi, cphi, a1t, a2t, &
+                        acphir, vvfh, ak, bk, eddphi, eddlam, edadphi, ieu=>ie, &
+                        iau=>ib, jau=>jb, jeu=>je, jev=>je, jav=>jb, iav=>ib,  &
+                        iev=>ie
+use mo_namelist, only: laistep, lptop0, lhdiff2, ldivdamp
+USE mo_driver,    only: ed2dt, nj=>nnow, na=>nold, na2=>nold2, nj2=>nnow2, ed2dt, vbmxv, vbcfl, alcnva,&
+                        dt2, dtdeh, ne=>nnew
+!USE MO_ORG,                  ONLY:    NJ, JAH,       &
+!                                     LPTOP0, IEH, NA, NA2, NE,          &
+!                                     IAV, IEV, NJ2, IAH, JEH, IEU,      &
+!                                     PTOP, IAU, JEV, IEHGG, JEHGG,      &
+!                                     IAHGG, JAHGG                        
+USE MO_constants,               ONLY:   R, RERD, WCP, WLK, WLS              
+USE MO_constants,               ONLY:    RDDRM1, WCPR,       &
+                                      EDG,         &
+                                     RDRD, EMRDRD                 
+USE MO_constants,              ONLY:   EDFAKINF                            
 USE MO_DYNAMICS,             ONLY:   INDEX1, INDEX2, INDEX3,            &
                                      INDEX4, JM2, JM3, JM4,             &
                                      JN5, JO2, JO3, JO4, JO5, JS4,      &
@@ -80,7 +84,8 @@ USE MO_DYNAMICS,             ONLY:   DYN_ADVECT_DIFFUSE,                &
                                      DYN_INIT_DIFFUSION,                &
                                      DYN_INIT_INDICES,                  &
                                      DYN_SWAP_INDICES,                  &
-                                     DYN_PRECOMPUTE
+                                     DYN_PRECOMPUTE,   &
+                                     KFL850,KFL500,KFL300
 USE MO_MAGNUS,               ONLY:   FGEW, FGQD 
 USE MO_MEMORY_DYNAMICS
 !
@@ -95,17 +100,11 @@ IMPLICIT NONE
  
 ! ERFORDERLICHE EM-FELDER AUS DEM LANGZEITSPEICHER DIMENSIONIEREN
 ! ---------------------------------------------------------------
-! VERTIKAL-KOORDINATEN-PARAMETER
-REAL, INTENT(IN) :: AK(KE1), BK(KE1)
  
-! VERTIKAL VARIIERENDER IMPLIZITHEITSGRAD DER V-DIFFUSION
-REAL, INTENT(IN) :: A1T(KE1), A2T(KE1)
  
-! EVT. VERTIKAL VARIIERENDER VERSTAERKUNGSFAKTOR DER H-DIFFUSION
-REAL, INTENT(IN) :: VVFH(KE)
  
 ! EXTERNE PARAMETER
-REAL, INTENT(IN) :: FIB(IE,JE), FC(IE,JE), ACPHIR(JE,2),CPHI(JE,2)
+REAL, INTENT(IN) :: FIB(IE,JE), FC(IE,JE)
  
 ! PROGNOSTISCHE BODENFELDER
  
@@ -517,7 +516,7 @@ DO j = jah , jeh
   ! WEITERE LOKALE FELDER AN H/V-GITTERPUNKTEN (HF) BESETZEN
   ! 
   zx1 = 0.5*r*edadphi
-  IF ( (j<jeh) .OR. (NEIGHBOR(2)/=-1) ) THEN
+  IF ( (j<jeh) ) THEN!.OR. (NEIGHBOR(2)/=-1) ) THEN
      zfkio = Cphi(j+1,2)/Cphi(j+1,1)
      zfkiu = Cphi(j,2)/Cphi(j+1,1)
      zfdivx = Acphir(j+1,1)*eddlam
@@ -916,10 +915,10 @@ ENDDO  ! J = JAH, JEH
 ! DIESER FLUESS WIRD AUFSUMMIERT
 ! OMEGA-MITTELWERTE BESTIMMTER MODELLFLAECHEN BILDEN
 !
-zdeltf = FLOAT((iehgg-iahgg+1)*(jehgg-jahgg+1))
-Zom850m = Zom850m/zdeltf
-Zom500m = Zom500m/zdeltf
-Zom300m = Zom300m/zdeltf
+!zdeltf = FLOAT((iehgg-iahgg+1)*(jehgg-jahgg+1))
+!Zom850m = Zom850m/zdeltf
+!Zom500m = Zom500m/zdeltf
+!Zom300m = Zom300m/zdeltf
 ! 
 !-----------------------------------------------------------------------
 END SUBROUTINE PROGEXP

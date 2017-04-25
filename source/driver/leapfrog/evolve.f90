@@ -16,12 +16,17 @@ write(*,*) '----- Driver_evolve_nerd ----------'
 current_time = 0.d0
 step = 0
 dt = dtini
+dt2 = 2.0*dt
+ed2dt = 1.0/dt2
+dtdeh = dt/3600.0 
 !
 nold = 3; nnow=1; nnew = 2
+nold2 = 2; nnow2 = 1;
 !
 do while(current_time<t_max)
    !
    nsp=nold; nold=nnow; nnow=nnew; nnew=nsp;
+   nold2 = 3-nold2; nnow2=3-nnow2;
    !
    write(*,'(I5,6D18.8)') step,current_time,dt, sum(ener(ib:ie,jb:je,kb:ke)), &
                                                 sum(dx*dens(ib:ie,jb:je,kb:ke)), &

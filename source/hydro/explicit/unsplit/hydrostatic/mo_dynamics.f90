@@ -3,13 +3,12 @@
 !
 MODULE MO_DYNAMICS
 USE mo_grid,      only: iah=>ib, ieh=>ie, jah=>jb, jeh=>je, iaa=>ibg, iea=>ieg, &
-                        ke=>nz, ke1=>nz1, eddlam, edadphi, eddphi
+                        ke=>nz, ke1=>nz1, eddlam, edadphi, eddphi, cphi, a1t, a2t, &
+                        acphir, vvfh, bk
 USE mo_driver,    only: nnow, nold, nold2, nnow2, ed2dt 
 USE mo_constants,         ONLY: R, RERD=>r_earth, wcpr, RDDRM1
-USE MO_MEMORY_EC4,        ONLY: CPHI, A1T, A2T, TG, ACPHIR, VVFH, HYDRODP, FC, &
-                                ETAS, BK 
 USE mo_database,       ONLY: T, QD, QW, QI, DWDT, TMCH, FIB, QDB, U=>UX, V=>UY,   &
-                                PINT, FI
+                                PINT, FI, hydrop, etas, tg, fc, hydrodp
 !USE MO_MEMORY_DYNAMICS,   ONLY: ZEDDPQ, ZDP, ZEDDPQINT, ZDPINT, ZGV,         &
 !                                ZTADV, ZQDADV, ZGU, ZPLAM, ZPPHI, ZTV,       &
 !                                ZALOPN, ZSDIV, ZBETAK, ZALPOM, AGB, AGD,     &
@@ -19,6 +18,7 @@ USE mo_database,       ONLY: T, QD, QW, QI, DWDT, TMCH, FIB, QDB, U=>UX, V=>UY, 
 !                                ZQIDIH, ZQITS, ZLAPT, ZLAPQD, ZLAPQW, ZLAPU, &
 !                                ZLAPV, ZUDIFH, ZVDIFH, ZLAPQI, ZDPU, ZDPV,   &
 !                                ZDP5, ZTPA, ZPHF
+use mo_namelist, only: lptop0, lhdiff2
 USE MO_MEMORY_DYNAMICS 
 USE MO_MAGNUS,            ONLY:   FGEW, FGQD 
 !
@@ -60,7 +60,8 @@ INTEGER :: JU5, JZM, JZN, JZO, JZS, JZU
 REAL    :: ZX2, ZA1A, ZA2A, ZALOG2, Z4DRERD
 !
 !
-REAL :: LHDIFF2, LPTOP0, AKS2, AKS4
+REAL :: AKS2, AKS4
+INTEGER :: KFL850,KFL800,KFL500,KFL400,KFL300
 !
 !
 INTERFACE diffuse_horizontal_sigma
@@ -754,10 +755,10 @@ LOGICAL FUNCTION at_boundary(i,j,k)
   INTEGER, INTENT(IN) :: i,j,k
   LOGICAL :: boundary_check(4)
   at_boundary = .FALSE.
-  boundary_check(1) = (i==iah .AND. neighbor(1)==-1)
-  boundary_check(2) = (j==jeh .AND. neighbor(2)==-1)
-  boundary_check(3) = (i==ieh .AND. neighbor(3)==-1)
-  boundary_check(4) = (j==jah .AND. neighbor(4)==-1)
+  boundary_check(1) = (i==iah)! .AND. neighbor(1)==-1)
+  boundary_check(2) = (j==jeh)! .AND. neighbor(2)==-1)
+  boundary_check(3) = (i==ieh)! .AND. neighbor(3)==-1)
+  boundary_check(4) = (j==jah)! .AND. neighbor(4)==-1)
   IF(ANY(boundary_check)) at_boundary = .TRUE.
 END FUNCTION at_boundary
 

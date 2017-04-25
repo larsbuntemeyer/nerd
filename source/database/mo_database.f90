@@ -31,12 +31,19 @@ module mo_database
    real, dimension(:,:,:,:), allocatable :: qw
    real, dimension(:,:,:,:), allocatable :: qi
    real, dimension(:,:,:,:), allocatable :: dwdt
-   real, dimension(:,:,:,:), allocatable :: tmch
    real, dimension(:,:,:,:), allocatable :: fi
-   real, dimension(:,:,:,:), allocatable :: fib
-   real, dimension(:,:,:,:), allocatable :: qdb
    real, dimension(:,:,:,:), allocatable :: pint
-
+   real, dimension(:,:,:,:), allocatable :: hydrop
+   real, dimension(:,:,:,:), allocatable :: hydrodp
+   real, dimension(:,:,:,:), allocatable :: hydromp
+   !
+   real, dimension(:,:,:), allocatable :: etas 
+   real, dimension(:,:,:), allocatable :: tg 
+   real, dimension(:,:,:), allocatable :: qdb
+   !
+   real, dimension(:,:)  , allocatable :: fc 
+   real, dimension(:,:)  , allocatable :: fib
+   real, dimension(:,:)  , allocatable :: tmch
    !
    !--------------------------------------------------------
 end module mo_database

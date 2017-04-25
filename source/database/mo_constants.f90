@@ -81,4 +81,7 @@ module mo_constants
    real, parameter      ::   TCRITH  =   273.16
    real, parameter      ::   TCRITL  =   268.16
    !
+   real, parameter   ::   fakinf  = 10000.
+   real, parameter   ::   edfakinf = 1./fakinf
+   !
 end module mo_constants 
