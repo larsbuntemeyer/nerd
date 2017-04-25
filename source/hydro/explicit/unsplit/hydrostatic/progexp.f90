@@ -188,7 +188,7 @@ IF ( vbmxv>0.95*vbcfl ) THEN
   zepsray = 0.0005*ed2dt*(vbmxv-0.95*vbcfl)/(0.05*vbcfl)
   IF ( vbmxv>vbcfl*1.05 ) THEN
      WRITE (ytxt,'(A,F5.1,A)') 'WARNING: VBMAX=' , vbmxv , ' M/S'
-     CALL REMARK(ytxt)
+     !CALL REMARK(ytxt)
      IF ( vbmxv>250.0 ) THEN
         PRINT * , 'VBMAX EXCEEDS 250 M/S'
         STOP 1
