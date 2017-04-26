@@ -2,7 +2,7 @@ subroutine init_domain
    !
    use mo_grid
    use mo_namelist
-   use mo_database
+   use mo_database, only: ps,t,u=>vx,w=>vz,fib, fi, qw, qd, qi
    use mo_constants
    use mo_parameters, only: ndim
    !
@@ -13,11 +13,13 @@ subroutine init_domain
    real    :: xctr,yctr,zctr
    real    :: xsize,ysize,zsize
    real    :: rho_in,rho_out,eint_in,eint_out,pres_in,pres_out
-   real    :: ek,ei,e, radius
+   real    :: ek,ei,e, radius, disx, bfac
    integer,parameter :: seed = 86456
    !
-   real    :: rho_left,rho_right, eint_env
-   real    :: vx_left,vx_right, p,pt,ps, dp, rho_t
+   real, parameter :: BCZ=3000.0,BCI=150.0,BRZ=2000.0,BRX=4000.0,BVAL=6.6
+   !
+   real    :: rho_left,rho_right, eint_env, zfih
+   real    :: vx_left,vx_right, p,pt, dp, rho_t
    !
    !
    !eint_env = 300.0/(mu_mol*(gamma-1.0)) * gas_constant
@@ -39,29 +41,30 @@ subroutine init_domain
    !
    write(*,*) '----- init_domain -----------------'
    !
-   !do i=1+nguard,nx+nguard
-   eint(:,je,:) = eint_env
-   pres(:,je,:) = pt
-   !dens(:,je,:) = pt/(eint_env*(gamma-1.0))
-   dens(:,je,:) = pt/(R*300.0)
-   do k=kb,ke
-      do j=je-1,jb,-1
-         do i=ib,ie
-            dp = - dens(i,j+1,k) * 9.81 * (ycCoord(j) - ycCoord(j+1))
-            pres(i,j,k) = pres(i,j+1,k) + dp
-            !dens(i,j,k) = pres(i,j,k)/(eint_env*(gamma-1.0))
-            dens(i,j,k) = pres(i,j,k)/(R*300.0)
-            eint(i,j,k) = eint_env
-            !
-            u(i,j,k) = 0.
-            v(i,j,k) = 0.
-            w(i,j,k) = 0.
-            ek = 0.5*(u(i,j,k)**2+v(i,j,k)**2+w(i,j,k)**2)
-            ener(i,j,k) = eint(i,j,k) + ek
-            !
-         enddo
-      enddo
-   enddo
+   QW(:,:,:,1) = 0.
+   QD(:,:,:,1) = 0.
+   QI(:,:,:,1) = 0.
+   U(:,:,:,1) = 0.
+   W(:,:,:,1) = 0.
+   T(:,:,:,1) = 288.15
+   PS(:,:,1) = 101325.
+   FIB = 0.
+   FI = 0.
+!  now add straka-like bubble
+!  distance in m per degree longitude
+!   DISX = RERD*PI/180.*COS(ycCoord(1)) 
+!   do k=kb,ke-1
+!      do j=je,jb
+!         do i=ib,ie
+!            !
+!            zfih = 0.5*(fi(i,j,k,1)+fi(i,j,k+1,1))
+!            BFAC = SQRT(((I-BCI)*DLAM*DISX/BRX)**2 + ((ZFIH/G - BCZ)/BRZ)**2)
+!            IF (BFAC <= 1.) THEN
+!              T(I,J,K,1) = T(I,J,K,1) + BVAL*(COS(PI*BFAC) + 1.)/2.
+!            END IF
+!         enddo
+!      enddo
+!   enddo
    !do k=kb,ke
    !   do j=je-1,jb,-1
    !      do i=ib,ie

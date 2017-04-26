@@ -4,10 +4,10 @@
 MODULE MO_DYNAMICS
 USE mo_grid,      only: iah=>ib, ieh=>ie, jah=>jb, jeh=>je, iaa=>ibg, iea=>ieg, &
                         ke=>nz, ke1=>nz1, eddlam, edadphi, eddphi, cphi, a1t, a2t, &
-                        acphir, vvfh, bk
+                        acphir, vvfh, bk, lptop0
 USE mo_driver,    only: nnow, nold, nold2, nnow2, ed2dt 
 USE mo_constants,         ONLY: R, RERD=>r_earth, wcpr, RDDRM1
-USE mo_database,       ONLY: T, QD, QW, QI, DWDT, TMCH, FIB, QDB, U=>UX, V=>UY,   &
+USE mo_database,       ONLY: T, QD, QW, QI, DWDT, TMCH, FIB, QDB, U=>VX, V=>VY,   &
                                 PINT, FI, hydrop, etas, tg, fc, hydrodp
 !USE MO_MEMORY_DYNAMICS,   ONLY: ZEDDPQ, ZDP, ZEDDPQINT, ZDPINT, ZGV,         &
 !                                ZTADV, ZQDADV, ZGU, ZPLAM, ZPPHI, ZTV,       &
@@ -18,7 +18,7 @@ USE mo_database,       ONLY: T, QD, QW, QI, DWDT, TMCH, FIB, QDB, U=>UX, V=>UY, 
 !                                ZQIDIH, ZQITS, ZLAPT, ZLAPQD, ZLAPQW, ZLAPU, &
 !                                ZLAPV, ZUDIFH, ZVDIFH, ZLAPQI, ZDPU, ZDPV,   &
 !                                ZDP5, ZTPA, ZPHF
-use mo_namelist, only: lptop0, lhdiff2
+use mo_namelist, only: lhdiff2
 USE MO_MEMORY_DYNAMICS 
 USE MO_MAGNUS,            ONLY:   FGEW, FGQD 
 !

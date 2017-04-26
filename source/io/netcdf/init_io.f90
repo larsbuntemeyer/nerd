@@ -3,7 +3,7 @@ subroutine init_io
 use netcdf
 use mo_io
 use mo_database
-use mo_parameters, only: ndim
+use mo_parameters, only: ndim,k2d,k3d
 use mo_grid!, only: nx,ny,nz,ib,ie
 !
 implicit none
@@ -21,8 +21,8 @@ call check( nf90_create(outdata_base, nf90_clobber, ncid) )
 ! unlimited length - it can grow as needed. In this example it is
 ! the time dimension.
 call check( nf90_def_dim(ncid, 'x', nx, x_dimid) )
-if(ndim>1)  call check( nf90_def_dim(ncid, 'y', nx, y_dimid) )
-if(ndim==3) call check( nf90_def_dim(ncid, 'z', nz, z_dimid) )
+if(k2d==1)  call check( nf90_def_dim(ncid, 'y', nx, y_dimid) )
+if(k3d==1)  call check( nf90_def_dim(ncid, 'z', nz, z_dimid) )
 call check( nf90_def_dim(ncid, 'time', NF90_UNLIMITED, rec_dimid) )
 
 ! Define the coordinate variables. We will only define coordinate
@@ -32,8 +32,8 @@ call check( nf90_def_dim(ncid, 'time', NF90_UNLIMITED, rec_dimid) )
 ! simply provide the address of that dimension ID (lat_dimid) and
 ! similarly for (lon_dimid).
 call check( nf90_def_var(ncid, 'x', NF90_DOUBLE, x_dimid, x_varid) )
-if(ndim>1)  call check( nf90_def_var(ncid, 'y', NF90_DOUBLE, y_dimid, y_varid) )
-if(ndim==3) call check( nf90_def_var(ncid, 'z', NF90_DOUBLE, z_dimid, z_varid) )
+if(k2d==1) call check( nf90_def_var(ncid, 'y', NF90_DOUBLE, y_dimid, y_varid) )
+if(k3d==1) call check( nf90_def_var(ncid, 'z', NF90_DOUBLE, z_dimid, z_varid) )
 call check( nf90_def_var(ncid, 'time', NF90_DOUBLE, rec_dimid, rec_varid) )
 
 ! The dimids array is used to pass the dimids of the dimensions of
@@ -42,30 +42,40 @@ call check( nf90_def_var(ncid, 'time', NF90_DOUBLE, rec_dimid, rec_varid) )
 ! dimension must come last on the list of dimids.
 if(ndim==1) then
   dimids = (/ x_dimid, rec_dimid, -1, -1 /)
-elseif(ndim==2) then
+elseif(ndim==2 .and. k3d==0) then
   dimids = (/ x_dimid, y_dimid, rec_dimid, -1 /)
+elseif(ndim==2 .and. k2d==0) then
+  dimids = (/ x_dimid, z_dimid, rec_dimid, -1 /)
 elseif(ndim==3) then
   dimids = (/ x_dimid, y_dimid, z_dimid, rec_dimid /)
 endif
 !
-call check( nf90_def_var(ncid, 'dens', NF90_REAL, reshape(dimids,(/ndim+1/)), dens_id) )
-call check( nf90_def_var(ncid, 'eint', NF90_REAL, reshape(dimids,(/ndim+1/)), eint_id) )
-call check( nf90_def_var(ncid, 'pres', NF90_REAL, reshape(dimids,(/ndim+1/)), pres_id) )
-call check( nf90_def_var(ncid, 'u', NF90_REAL, reshape(dimids,(/ndim+1/)), u_id) )
-if(ndim>1)  call check( nf90_def_var(ncid, 'v', NF90_REAL, reshape(dimids,(/ndim+1/)), v_id) )
-if(ndim==3) call check( nf90_def_var(ncid, 'w', NF90_REAL, reshape(dimids,(/ndim+1/)), w_id) )
+print*, 'defining variables'
+!call check( nf90_def_var(ncid, 'dens', NF90_REAL, reshape(dimids,(/ndim+1/)), dens_id) )
+call check( nf90_def_var(ncid, 'dens', NF90_REAL, dimids(1:ndim+1), dens_id) )
+call check( nf90_def_var(ncid, 'eint', NF90_REAL, dimids(1:ndim+1), eint_id) )
+call check( nf90_def_var(ncid, 'pres', NF90_REAL, dimids(1:ndim+1), pres_id) )
+call check( nf90_def_var(ncid, 'u'   , NF90_REAL, dimids(1:ndim+1), u_id) )
+if(k2d==1)  call check( nf90_def_var(ncid, 'v', NF90_REAL, dimids(1:ndim+1), v_id) )
+if(k3d==1)  call check( nf90_def_var(ncid, 'w', NF90_REAL, dimids(1:ndim+1), w_id) )
+call check( nf90_def_var(ncid, 'hydrop'   , NF90_REAL, dimids(1:ndim+1), hydrop_id) )
+call check( nf90_def_var(ncid, 't'   , NF90_REAL, dimids(1:ndim+1), t_id) )
 !
 ! End define mode.
 call check( nf90_enddef(ncid) )
 !
 nt = 0
-count = (/ nx, ny, nz, 1 /)
+if(ndim==2 .and. k2d==0) then
+  count = (/ nx, nz, 1 , 1/)
+else
+  count = (/ nx, ny, nz, 1 /)
+endif
 
 ! Write the coordinate variable data. This will put the latitudes
 ! and longitudes of our data grid into the netCDF file.
 call check( nf90_put_var(ncid, x_varid, xcCoord(ib:ie)) )
-if(ndim>1)  call check( nf90_put_var(ncid, y_varid, ycCoord(jb:je)) )
-if(ndim==3) call check( nf90_put_var(ncid, z_varid, zcCoord(kb:ke)) )
+if(k2d==1)  call check( nf90_put_var(ncid, y_varid, ycCoord(jb:je)) )
+if(k3d==1)  call check( nf90_put_var(ncid, z_varid, zcCoord(kb:ke)) )
 
 call check( nf90_close(ncid) )
 !

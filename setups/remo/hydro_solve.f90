@@ -3,7 +3,7 @@
 !
 subroutine hydro_solve(dt)
  !
- use mo_grid, only: ib,ie,nx,ibg,ieg,jbg,jeg,kbg,keg
+ use mo_grid, only: ib,je,ie,nx,ibg,ieg,jbg,jeg,kbg,keg, ke, ke1,ieke=>nxnz
  use mo_database
  use mo_parameters, only: nvar,ndim
  use mo_namelist, only: bc
@@ -13,33 +13,41 @@ subroutine hydro_solve(dt)
  !
  real, intent(inout) :: dt
  integer :: i,j,k
- real,dimension(nvar,nx+1) :: F_l,F_r
  !
- if(ndim>2) then
-    write(*,*) '------------------------'
-    write(*,*) 'ERROR in Hydro_solve:'
-    write(*,*) 'only 1D and 2D possilbe!'
-    write(*,*) '------------------------'
-    stop
- endif
+ real :: zom850m, zom500m, zom300m
+ REAL  ::  TGL (IE,JE,3), TGW (IE,JE,3), TGI (IE,JE,3),      &
+       QDBL(IE,JE,3), QDBW(IE,JE,3), QDBI(IE,JE,3)
+ REAL  ::   BFLHS  (IE,JE),                                  &
+         BFLHSL (IE,JE), BFLHSW (IE,JE), BFLHSI (IE,JE),                &
+         BFLQDS (IE,JE),                                                &
+         BFLQDSL(IE,JE), BFLQDSW(IE,JE), BFLQDSI(IE,JE),                &
+         BFLUS  (IE,JE), BFLVS  (IE,JE)                                  
+ REAL :: TMKVMH(IE*(KE-1),JE,2)                                
+ REAL :: TMCM(IE,JE), TMCHL(IE,JE), TMCHW(IE,JE), TMCHI(IE,JE)           
+ REAL :: SOTHDT(IEKE,JE,2)                                   
+ REAL ::   TTK(IEKE,JE), QDTK(IEKE,JE), UVTK(IEKE,JE,2)        
+                                                               
+ REAL ::   TTS(IEKE,JE), QDTS(IEKE,JE), QWTS(IEKE,JE)          
+ INTEGER :: INFRL  (IE,JE), INFRW  (IE,JE),                   &
+                        INFRI  (IE,JE)                                     
+ REAL  ::   QITS  (IEKE,JE)                   
+ REAL  :: DDMPUJ(JE), DDMPVJ(JE)                                
+ !
+ ! dummy variables
+ !
  !
  !call fill_guardcells
  !
- do k=kbg,keg
-   do j=jbg,jeg
-      call fill_guardcells_1D(dens(:,j,k),pres(:,j,k),eint(:,j,k),u(:,j,k),v(:,j,k),w(:,j,k),ibg,ieg,ieg,2)
-   enddo  
- enddo 
- if(ndim>1) then 
-   do k=kbg,keg
-     do i=ibg,ieg
-        call fill_guardcells_1D(dens(i,:,k),pres(i,:,k),eint(i,:,k),u(i,:,k),v(i,:,k),w(i,:,k),jbg,jeg,jeg,3)
-     enddo  
-   enddo
- endif
  !
- !
- call hydro3D(dt)
- !
+ call PROGEXP                                                 &
+   (ZOM850M, ZOM500M, ZOM300M,                                     &
+     FIB    , FC     , PS    ,      &
+    TGL   , TGW   , TGI    , QDBL   , QDBW   , QDBI , BFLHSL,      &
+    BFLHSW, BFLHSI, BFLQDSL, BFLQDSW, BFLQDSI, TG   , QDB   ,      &
+    BFLHS , BFLQDS, BFLUS  , BFLVS  , U      , V    , T     ,      &
+    QD    , QW    , FI     , TMKVMH , TMCHL  , TMCHW,              &
+    TMCHI , TMCM  , TMCH   , SOTHDT , TTK    , QDTK , UVTK  ,      &
+    TTS   , QDTS  , QWTS   , INFRL  , INFRW  , INFRI, QI    ,      &
+    QITS  , PINT  , DWDT   , ETAS   , DDMPUJ , DDMPVJ,HYDRODP)    
  !
 end subroutine hydro_solve

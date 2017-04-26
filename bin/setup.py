@@ -1328,28 +1328,28 @@ def parseCommandLine(opts):
         else:
             opts.maxblocks = 1000
 
-    if opts.dimension < 3:
-        if opts.nzb != None:
-            raise SetupError("Must not specify nzb for dimensionality < 3d")
+    if opts.dimension < 3 :
+        if opts.nzb != None and opts.nyb != None:
+            raise SetupError("Must not specify both ny and nz for dimensionality < 3d")
     if opts.dimension < 2:
-        if opts.nyb != None:
-            raise SetupError("Must not specify nyb for dimensionality < 2d")
+        if opts.nyb != None or opts.nzb != None:
+            raise SetupError("Must not specify other for dimensionality < 2d")
 
     
     if opts.nzb == None:
         if opts.dimension > 2:
-            opts.nzb = 8
+            opts.nzb = 100 
         else:
             opts.nzb = 1
 
     if opts.nyb == None:
-        if opts.dimension > 1:
-            opts.nyb = 8
+        if opts.dimension > 1 and opts.nzb == None :
+            opts.nyb = 100
         else:
             opts.nyb = 1
 
     if opts.nxb == None: #numbers from physicaldata.F90
-        opts.nxb = 8
+        opts.nxb = 100
 
 
 

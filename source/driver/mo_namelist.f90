@@ -30,7 +30,6 @@ module mo_namelist
    integer, parameter :: bc = reflective
    !
    integer     :: output_interval
-   logical     :: lptop0
    logical     :: lhdiff2
    logical     :: laistep
    logical     :: ldivdamp

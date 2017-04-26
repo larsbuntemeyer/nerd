@@ -1,0 +1,96 @@
+! general control parameters and logical switches
+&CTL
+ ! number of horizontal and vertical grid points
+ IE=300,
+ KE=100,
+ ! horizontal resolution in degrees longitude
+ ! STRAKA (0.001), MOUNTAIN_WAVE (0.004), GRAVITY_WAVE (0.01)
+ DLAM=0.01,
+ ! latitude coordinate of slice
+ PHILU=-0.01,
+ ! left corner in longitudes
+ LALU=-1.,
+ ! text file with vertical coordinate parameters
+ AKBK_FILE='akbk_101lev_100m_pt27713.txt',
+ ! timestep in seconds
+ DT=1.,
+ ! minimum time to compute in seconds
+ TENDE=3000.,
+ ! desired output interval in seconds
+ STOUT=10.0,
+ ! path and name of output file
+ FOUT='../test.nc',
+ ! true if pressure is zero at the top of the atmosphere, false otherwise
+ LPTOP0=.FALSE.,
+ ! periodic boundary conditions in x
+ ! STRAKA (FALSE), MOUNTAIN_WAVE(TRUE), GRAVITY_WAVE(TRUE)
+ LPERIODIC=.TRUE.
+ ! true for 2nd order horizontal diffusion, false for 4th order
+ LHDIFF2=.FALSE.,
+ ! true for hydrostatic computations, false otherwise
+ LHYDRO=.FALSE.,
+ ! true for straka test case
+ ! please add more test case switches right here before the filter parameters
+ ! and add new namelists for testcase-specific settings
+ LSTRAKA=.FALSE.,
+ ! mountain wave test
+ LMOUNTWAV=.FALSE.,
+ ! inertia-gravity wave test
+ LGRAVWAVE=.TRUE.,
+ ! eddy diffusion parameter
+ EDDYDIFF=0.0,
+ ! time filter for DWDT
+ DWP=0.0,
+ ! spatial filter for DWDT
+ DDIFW=0.15,
+ ! asselin parameter
+ EPSASS = 0.15,
+ ! uniform wind speed in x
+ ! STRAKA (0.), MOUNTAIN_WAVE(10.), GRAVITY_WAVE(20.)
+ UM=20.,
+ ! potential temperature
+ TPOT0=300.
+ /
+! test case specific controls
+! add new namelists for more cases
+&STRAKA     
+  ! vertical bubble center in m
+  BCZ=3000.,
+  ! grid index of horizontal bubble center
+  BCI=200,
+  ! bubble radii in m
+  BRZ=2000.,
+  BRX=4000.,
+  ! max bubble temperature perturbation
+  BVAL=6.6
+  /
+&MOUNTWAVE
+ ! Brunt-Vaeisaelae frequency
+ BRUNT = 0.01,
+ ! hill height (m)
+ HM = 500.,
+ ! hill half-width (m)
+ XA = 2000.
+ /
+&GRAVWAVE
+ ! brunt-Vaeisaelae frequency
+ BRUNTGW = 0.01,
+ ! potential temperature perturbation (K)
+ DTPOT0 = 0.01,
+ ! perturbation half-width (m)
+ PHW = 5000.
+ /
+&RAYDAMP
+ ! rayleigh damping of u and w (at the top)
+ ! STRAKA (FALSE), MOUNTAIN_WAVE(TRUE), GRAVITY_WAVE(FALSE)
+ LRAYDAMP=.FALSE.,
+ ! height (in m) from which on rayleigh damping acts
+ ZDAMP=9000.,
+ ! weight of rayleigh damping == 1/(ZNRNEST*DT)
+ ZNRNEST=1000.,
+ ! increased (additive) rayleigh damping to damp startup transients
+ ! acts on entire domain!
+ DINIT0=0.01,
+ ! timescale for exponential decay of increased rayleigh damping
+ TINIT=900.
+ /

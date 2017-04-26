@@ -58,8 +58,8 @@ USE mo_grid,      only: iah=>ib, ieh=>ie, jah=>jb, jeh=>je, iaa=>ibg, iea=>ieg, 
                         ke=>nz, ke1=>nz1, eddlam, edadphi, eddphi, cphi, a1t, a2t, &
                         acphir, vvfh, ak, bk, eddphi, eddlam, edadphi, ieu=>ie, &
                         iau=>ib, jau=>jb, jeu=>je, jev=>je, jav=>jb, iav=>ib,  &
-                        iev=>ie
-use mo_namelist, only: laistep, lptop0, lhdiff2, ldivdamp
+                        iev=>ie, lptop0
+use mo_namelist, only: laistep,lhdiff2, ldivdamp
 USE mo_driver,    only: ed2dt, nj=>nnow, na=>nold, na2=>nold2, nj2=>nnow2, ed2dt, vbmxv, vbcfl, alcnva,&
                         dt2, dtdeh, ne=>nnew
 !USE MO_ORG,                  ONLY:    NJ, JAH,       &
@@ -88,6 +88,7 @@ USE MO_DYNAMICS,             ONLY:   DYN_ADVECT_DIFFUSE,                &
                                      KFL850,KFL500,KFL300
 USE MO_MAGNUS,               ONLY:   FGEW, FGQD 
 USE MO_MEMORY_DYNAMICS
+!use mo_database
 !
 IMPLICIT NONE
 !

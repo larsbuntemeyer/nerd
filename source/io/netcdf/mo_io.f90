@@ -16,6 +16,7 @@ integer :: rec_dimid
 integer :: x_varid,y_varid,z_varid
 !
 integer :: dens_id, pres_id, eint_id 
+integer :: hydrop_id, t_id, vx_id, vy_id, vz_id
 integer :: rec_varid
 integer :: u_id, v_id, w_id 
 !

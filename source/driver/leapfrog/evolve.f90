@@ -33,9 +33,9 @@ do while(current_time<t_max)
                                                 maxval(abs(u(ib:ie,jb:je,kb:ke))), &
                                                 maxval(abs(v(ib:ie,jb:je,kb:ke)))
    !
-   call eos
+   !call eos
    ! 
-   !call hydro_solve(dt)
+   call hydro_solve(dt)
    !
    current_time = current_time + dt  
    step         = step+1

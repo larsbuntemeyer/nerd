@@ -3,21 +3,20 @@
 !
 module mo_grid
    !
-   !use mo_parameters, only: nguard, ndim, k2d, k3d
-   !
    implicit none
    !
    integer,          save :: nx,ny,nz
-   integer,          save :: nz1,nxny
+   integer,          save :: nz1,nxny,nxnz
    integer,          save :: ib,jb,kb
-   integer,          save :: ie,je,ke
+   integer,          save :: ie,je,ke,ke1
    integer,          save :: ibg,jbg,kbg
-   integer,          save :: ieg,jeg,keg
+   integer,          save :: ieg,jeg,keg,keg1
    real,              save :: dx,dy,dz
    real                    :: EDDLAM, EDDPHI
    real                    :: EDADPHI
    real                    :: DLADDPH, DPHDDLA
    real                    :: dlam,dphi
+   logical     :: lptop0
    !
    !  The cell coordinates
    !  c: center coordinate of the cell

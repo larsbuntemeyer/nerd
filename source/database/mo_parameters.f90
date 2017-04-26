@@ -84,10 +84,23 @@ module mo_parameters
 ! an increment variable for the z dimension to enable the same code to
 ! work for 2D or 3D models.
   integer k3d
-  parameter(k3d=(ndim-1)/2)
+#if N_DIM == 3
+!  parameter(k3d=(ndim-1)/2)
+  parameter(k3d=1)
+#else
+#if N_DIM == 2 && NYB == 1
+  parameter(k3d=1)
+#endif
+#endif
 !
   integer k2d
+#ifdef NYB
+#if NYB != 1
   parameter(k2d=ndim/2)
+#else
+  parameter(k2d=0)
+#endif
+#endif
 !
 !
 ! set size of grid blocks

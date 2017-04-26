@@ -4,7 +4,9 @@
 subroutine init_hydro
    !
    use mo_dynamics
-   use mo_grid, only: ke=>nz, ak, bk, ptop
+   use mo_database, only: ps, hydrop, hydrodp, hydromp
+   use mo_grid, only: ke=>nz, ak, bk, akh, bkh, &
+                      dak, dbk, ptop
    !
    implicit none
    !
@@ -24,4 +26,11 @@ subroutine init_hydro
       IF(300.0E2 .GE. ZPNO .AND. 300.0E2 .LT. ZPNU) KFL300 = K
    ENDDO
    !
+   PS = 101325.
+   !
+   CALL PIBER(PS, 1, AK, BK, AKH, BKH, DAK, DBK,         &
+        HYDROP, HYDRODP, HYDROMP)
+   CALL PIBER(PS, 2, AK, BK, AKH, BKH, DAK, DBK,         &
+        HYDROP, HYDRODP, HYDROMP)
+        !
 end subroutine init_hydro
